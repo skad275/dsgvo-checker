@@ -29,7 +29,7 @@
 
     .card {
       background-color: var(--card);
-      max-width: 650px;
+      max-width: 680px;
       width: 100%;
       padding: 28px;
       border-radius: 12px;
@@ -40,7 +40,7 @@
     /* Tab-Steuerung */
     .tab-nav {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       margin-bottom: 20px;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 8px;
@@ -48,11 +48,12 @@
 
     .tab-btn {
       flex: 1;
-      padding: 10px;
+      padding: 10px 6px;
       background: #f1f5f9;
       border: 1px solid var(--border);
       border-radius: 6px;
       font-weight: 600;
+      font-size: 0.85rem;
       cursor: pointer;
       color: #475569;
       margin: 0;
@@ -72,7 +73,7 @@
       border: 1px solid #e2e8f0;
     }
 
-    input, textarea, button {
+    select, input, textarea, button {
       width: 100%;
       padding: 10px;
       margin-top: 6px;
@@ -80,6 +81,7 @@
       border: 1px solid var(--border);
       box-sizing: border-box;
       font-family: inherit;
+      font-size: 0.95rem;
     }
 
     button {
@@ -150,7 +152,7 @@
     @media print {
       body { background: #fff; padding: 0; }
       .card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      .tab-nav, .api-box, .hint-box, textarea, button, .subtitle, details, #loading, label, .progress-bg {
+      .tab-nav, .api-box, .hint-box, textarea, select, button, .subtitle, details, #loading, label, .progress-bg {
         display: none !important;
       }
       .result-box {
@@ -165,16 +167,35 @@
 
 <div class="card">
   <h2>🛡️ DSGVO Tool-Checker für Schulen</h2>
-  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Prüfe digitale Tools schnell per KI-Textscan oder Schritt-für-Schritt-Fragebogen.</p>
+  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Prüfe digitale Anwendungen per Vorauswahl, KI-Textscan oder Fragebogen.</p>
 
-  <!-- Modus-Wahl -->
+  <!-- Modus-Wahl Tabs -->
   <div class="tab-nav">
-    <button class="tab-btn active" id="tab-ki" onclick="switchMode('ki')">🤖 KI-Analyse (Text-Scan)</button>
-    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Manueller Fragebogen</button>
+    <button class="tab-btn active" id="tab-preset" onclick="switchMode('preset')">⚡ Vorgeprüfte Tools</button>
+    <button class="tab-btn" id="tab-ki" onclick="switchMode('ki')">🤖 KI-Analyse</button>
+    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Fragebogen</button>
   </div>
 
-  <!-- BEREICH 1: KI-ANALYSE -->
-  <div id="mode-ki">
+  <!-- BEREICH 1: SCHNELLAUSWAHL (PRESETS) -->
+  <div id="mode-preset">
+    <label style="font-weight: 600; display: block; margin-bottom: 6px;">Wähle ein bekanntes Tool aus der Liste:</label>
+    <select id="preset-select" onchange="loadPreset()">
+      <option value="">-- Bitte Tool auswählen --</option>
+      <option value="canva">Canva for Education</option>
+      <option value="padlet">Padlet</option>
+      <option value="kahoot">Kahoot!</option>
+      <option value="geogebra">GeoGebra</option>
+      <option value="taskcards">TaskCards</option>
+      <option value="chatgpt_free">ChatGPT (Kostenloses Privatkonto)</option>
+      <option value="chatpdf">ChatPDF (Kostenlose Browserversion)</option>
+    </select>
+    <p style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
+      <i>Hinweis: Diese Vorbewertungen basieren auf den allgemeinen Schul-Abonnements und Standard-Datenschutzerklärungen der jeweiligen Anbieter.</i>
+    </p>
+  </div>
+
+  <!-- BEREICH 2: KI-ANALYSE -->
+  <div id="mode-ki" style="display: none;">
     <div class="api-box">
       <label style="font-size: 0.85rem; font-weight: 600;">Gemini API-Schlüssel:</label>
       <input type="password" id="api-key" placeholder="AIzaSy..." onchange="saveKey()">
@@ -194,7 +215,7 @@
     <button onclick="analyzeText()" id="btn-analyze">🔍 KI-Analyse starten</button>
   </div>
 
-  <!-- BEREICH 2: MANUELLER FRAGEBOGEN -->
+  <!-- BEREICH 3: MANUELLER FRAGEBOGEN -->
   <div id="mode-manual" style="display: none;">
     <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
     <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 12px;" id="manual-question">Lade Frage...</div>
@@ -214,7 +235,7 @@
     <p id="result-summary" style="text-align: left; margin-top: 12px; line-height: 1.5;"></p>
     
     <div id="evidence-container" style="text-align: left; margin-top: 12px; display: none;">
-      <b>Gefundene Nachweise im Text:</b>
+      <b>Gefundene Nachweise & Richtlinien:</b>
       <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 6px;"></ul>
     </div>
 
@@ -224,17 +245,102 @@
 </div>
 
 <script>
+  // Datenbank für vorgeprüfte Schul-Tools
+  const presetsData = {
+    "canva": {
+      status: "GREEN",
+      title: "Canva for Education",
+      summary: "Hervorragend geeignet. Das spezielle kostenlose Bildungspaket für Lehrkräfte und Schulen beinhaltet einen vollwertigen AVV (Auftragsverarbeitungsvertrag). Daten werden nicht zum KI-Modelltraining verwendet.",
+      evidence: [
+        "Integrierter AVV im Konto für zertifizierte Bildungs-Tenants.",
+        "Ausdrücklicher Ausschluss des KI-Trainings mit Nutzerdaten im Education-Tarif.",
+        "Schülerkonten werden über den Lehrkräfte-Zugang datenschutzkonform verwaltet."
+      ]
+    },
+    "padlet": {
+      status: "YELLOW",
+      title: "Padlet",
+      summary: "Bedingt nutzbar. Die Nutzung ist unbedenklich, wenn Schüler*innen anonym ohne eigenen Account über einen Freigabelink/QR-Code teilnehmen. Für registrierte Schülerkonten ist eine Schul-Lizenz mit AVV nötig.",
+      evidence: [
+        "Anonyme Teilnahme ohne Login ist datenschutzfreundlich möglich.",
+        "US-Serverstandort; DPF-Zertifizierung der Muttergesellschaft beachten.",
+        "Keine echten Namen bei anonymen Text- und Medienbeiträgen eingeben."
+      ]
+    },
+    "kahoot": {
+      status: "YELLOW",
+      title: "Kahoot!",
+      summary: "Bedingt nutzbar. Das Eintreten in Spielrunden via Game-PIN (anonymer Nickname, keine Registrierung der Schüler*innen) ist im Unterricht zulässig.",
+      evidence: [
+        "Schüler*innen benötigen für die Live-Quizzes keinen Account.",
+        "Anweisungen geben: Pseudonyme/Spitznamen statt echter Vor- und Nachnamen wählen.",
+        "AVV ist nur erforderlich, wenn individuelle Schülerkonten angelegt werden."
+      ]
+    },
+    "geogebra": {
+      status: "GREEN",
+      title: "GeoGebra",
+      summary: "Unbedenklich nutzbar. Die dynamische Mathematik-Software kann vollständig ohne Registrierung und ohne Erhebung personenbezogener Daten genutzt werden.",
+      evidence: [
+        "Browserversion ohne Login funktionsfähig.",
+        "Hosting entspricht den EU-Datenschutzstandards.",
+        "Keine Verarbeitung sensibler Schülerdaten im Standard-Unterrichtseinsatz."
+      ]
+    },
+    "taskcards": {
+      status: "GREEN",
+      title: "TaskCards",
+      summary: "Unbedenklich nutzbar. Als deutsche Alternative zu Padlet wird die Plattform auf DSGVO-konformen Servern in Deutschland gehostet.",
+      evidence: [
+        "Serverstandort ausschließlich Deutschland (ISO 27001 zertifiziert).",
+        "AVV kann direkt online mit dem deutschen Anbieter abgeschlossen werden.",
+        "Vollständig DSGVO-konformer Einsatz für Lehrpersonen und Schüler*innen."
+      ]
+    },
+    "chatgpt_free": {
+      status: "RED",
+      title: "ChatGPT (Kostenloses Privatkonto)",
+      summary: "Nicht zulässig für Schüler*innen. Standardmäßig werden Eingaben/Prompts zum Training der KI-Modelle verwendet. Zudem fehlt eine vertragliche Grundlage (AVV) für Schulklassen.",
+      evidence: [
+        "Aktiviertes KI-Training mit Nutzereingaben im kostenlosen Standard-Konto.",
+        "Kein DSGVO-konformer AVV für private Einzelkonten verfügbar.",
+        "US-Serverübertragung ohne schulspezifische Schutzgarantien."
+      ]
+    },
+    "chatpdf": {
+      status: "RED",
+      title: "ChatPDF (Kostenlose Webversion)",
+      summary: "Nicht zulässig für personenbezogene Dokumente oder direkte Schülerverwendung mit Registrierung. Dokumente werden auf Drittland-Server hochgeladen.",
+      evidence: [
+        "Kein Auftragsverarbeitungsvertrag (AVV) für Schulen vorhanden.",
+        "Hochgeladene Dokumente (z. B. Schüleraufsätze oder Notenlisten) dürfen keine Personenbezüge enthalten.",
+        "Nutzung allenfalls als Demonstrationsmedium durch die Lehrperson mit anonymen Texten."
+      ]
+    }
+  };
+
   // Speicher & Modi
   document.getElementById("api-key").value = localStorage.getItem("gemini_key") || "";
   function saveKey() { localStorage.setItem("gemini_key", document.getElementById("api-key").value); }
 
   function switchMode(mode) {
+    document.getElementById("mode-preset").style.display = mode === 'preset' ? 'block' : 'none';
     document.getElementById("mode-ki").style.display = mode === 'ki' ? 'block' : 'none';
     document.getElementById("mode-manual").style.display = mode === 'manual' ? 'block' : 'none';
+    
+    document.getElementById("tab-preset").className = `tab-btn ${mode === 'preset' ? 'active' : ''}`;
     document.getElementById("tab-ki").className = `tab-btn ${mode === 'ki' ? 'active' : ''}`;
     document.getElementById("tab-manual").className = `tab-btn ${mode === 'manual' ? 'active' : ''}`;
+    
     document.getElementById("result").style.display = "none";
     if (mode === 'manual') renderManualStep();
+  }
+
+  function loadPreset() {
+    const val = document.getElementById("preset-select").value;
+    if (!val) return;
+    const tool = presetsData[val];
+    showResult(tool.status, tool.title, tool.summary, tool.evidence);
   }
 
   // --- MANUELLER FRAGEBOGEN LOGIK ---
@@ -365,6 +471,7 @@
 
   // --- ANZEIGE-FUNKTION ---
   function showResult(status, title, summary, evidence) {
+    document.getElementById("mode-preset").style.display = "none";
     document.getElementById("mode-ki").style.display = "none";
     document.getElementById("mode-manual").style.display = "none";
     
@@ -398,8 +505,9 @@
   function resetAll() {
     manualStep = 0;
     manualAnswers = [];
+    document.getElementById("preset-select").value = "";
     document.getElementById("policy-text").value = "";
-    switchMode('ki');
+    switchMode('preset');
   }
 </script>
 </body>
