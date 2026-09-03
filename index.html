@@ -7,6 +7,7 @@
   <style>
     :root {
       --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --bg: #f8fafc;
       --card: #ffffff;
       --text: #0f172a;
@@ -36,23 +37,39 @@
       border: 1px solid #e2e8f0;
     }
 
-    .api-box {
+    /* Tab-Steuerung */
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #475569;
+      margin: 0;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .api-box, .hint-box {
       background: #f1f5f9;
       padding: 14px;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       border: 1px solid #e2e8f0;
-    }
-
-    .instruction-hint {
-      background: #eff6ff;
-      border-left: 4px solid var(--primary);
-      padding: 10px 12px;
-      border-radius: 4px;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      color: #1e40af;
     }
 
     input, textarea, button {
@@ -74,16 +91,27 @@
       margin-top: 12px;
     }
 
-    button:hover { background-color: #1d4ed8; }
+    button:hover { background-color: var(--primary-hover); }
 
-    .btn-print {
-      background-color: #475569;
-      margin-top: 16px;
+    .btn-option {
+      background: #ffffff;
+      border: 2px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 500;
+      margin-top: 8px;
     }
-    
-    .btn-print:hover {
-      background-color: #334155;
+
+    .btn-option:hover {
+      border-color: var(--primary);
+      background-color: #eff6ff;
     }
+
+    .btn-print { background-color: #475569; margin-top: 16px; }
+    .btn-print:hover { background-color: #334155; }
 
     .result-box {
       padding: 20px;
@@ -104,18 +132,25 @@
       margin-bottom: 10px;
     }
 
+    .progress-bg {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 20%;
+      transition: width 0.3s ease;
+    }
+
     @media print {
-      body {
-        background-color: #ffffff;
-        padding: 0;
-      }
-      .card {
-        box-shadow: none;
-        border: none;
-        padding: 0;
-        max-width: 100%;
-      }
-      .api-box, textarea, button, .subtitle, details, #loading, label, .instruction-hint {
+      body { background: #fff; padding: 0; }
+      .card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+      .tab-nav, .api-box, .hint-box, textarea, button, .subtitle, details, #loading, label, .progress-bg {
         display: none !important;
       }
       .result-box {
@@ -130,54 +165,47 @@
 
 <div class="card">
   <h2>🛡️ DSGVO Tool-Checker für Schulen</h2>
-  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Analysiere Datenschutzerklärungen von KI-Tools direkt im Browser.</p>
+  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Prüfe digitale Tools schnell per KI-Textscan oder Schritt-für-Schritt-Fragebogen.</p>
 
-  <!-- API-Schlüssel Bereich -->
-  <div class="api-box">
-    <label style="font-size: 0.85rem; font-weight: 600;">Gemini API-Schlüssel:</label>
-    <input type="password" id="api-key" placeholder="AIzaSy..." onchange="saveKey()">
-    
-    <!-- Link zur Anleitung direkt unter dem Eingabefeld -->
-    <div style="margin-top: 8px; font-size: 0.85rem;">
-      👉 <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
-        Hier klicken: Anleitung & kostenlosen API-Schlüssel auf Google AI Studio erstellen
-      </a>
-    </div>
-
-    <!-- Ausklappbare Kurzanleitung -->
-    <details style="margin-top: 12px; font-size: 0.85rem; color: #334155;">
-      <summary style="cursor: pointer; font-weight: 600; color: var(--primary); user-select: none;">ℹ️ Kurzanleitung zur Schlüsselerstellung anzeigen</summary>
-      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #cbd5e1; line-height: 1.5;">
-        <ol style="margin-left: 20px; padding-left: 0;">
-          <li>Öffne <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600;">aistudio.google.com</a> und melde dich mit deinem Google-Konto an.</li>
-          <li>Klicke auf <b>"Get API key"</b> und danach auf <b>"Create API key in new project"</b>.</li>
-          <li>Kopiere den erzeugten Schlüssel (beginnt mit <code>AIzaSy...</code>) und füge ihn oben ein.</li>
-        </ol>
-      </div>
-    </details>
+  <!-- Modus-Wahl -->
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tab-ki" onclick="switchMode('ki')">🤖 KI-Analyse (Text-Scan)</button>
+    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Manueller Fragebogen</button>
   </div>
 
-  <!-- Text-Eingabebereich mit detaillierter Hilfestellung -->
-  <div>
-    <label style="font-weight: 600; display: block; margin-bottom: 6px;">Datenschutzerklärung des Tools:</label>
-    
-    <div class="instruction-hint">
-      <b>📋 Vorgehensweise:</b><br>
-      1. Suche auf der Website des gewünschten Tools ganz unten im Fußbereich (Footer) nach der Datenschutzerklärung.<br>
-      2. Achte bei englischsprachigen Tools auf Begriffe wie <b>Privacy Policy</b>, <b>Privacy Statement</b>, <b>Terms of Service (ToS)</b> oder <b>Data Processing Addendum (DPA)</b>.<br>
-      3. Markiere den gesamten Text auf der Seite, kopiere ihn (<code>Strg + C</code>) und füge ihn unten in das Feld ein (<code>Strg + V</code>).
+  <!-- BEREICH 1: KI-ANALYSE -->
+  <div id="mode-ki">
+    <div class="api-box">
+      <label style="font-size: 0.85rem; font-weight: 600;">Gemini API-Schlüssel:</label>
+      <input type="password" id="api-key" placeholder="AIzaSy..." onchange="saveKey()">
+      
+      <div style="margin-top: 8px; font-size: 0.85rem;">
+        👉 <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
+          Anleitung & kostenlosen API-Schlüssel auf Google AI Studio erstellen
+        </a>
+      </div>
     </div>
 
-    <textarea id="policy-text" rows="7" placeholder="Kopiere hier den gesamten Text der Datenschutzerklärung (oder Privacy Policy / Terms of Service) hinein..."></textarea>
-    
+    <div class="hint-box" style="font-size: 0.85rem; line-height: 1.4; color: #1e40af;">
+      <b>📋 Vorgehensweise:</b> Kopiere den Text der Datenschutzerklärung (oder <i>Privacy Policy / Terms of Service</i>) des Tools und füge ihn unten ein.
+    </div>
+
+    <textarea id="policy-text" rows="6" placeholder="Text der Datenschutzerklärung hier hineinkopieren..."></textarea>
     <button onclick="analyzeText()" id="btn-analyze">🔍 KI-Analyse starten</button>
   </div>
 
-  <div id="loading" style="display:none; text-align:center; margin-top:15px; color:var(--primary); font-weight:600;">
-    ⏳ Analysiere Text mit Gemini...
+  <!-- BEREICH 2: MANUELLER FRAGEBOGEN -->
+  <div id="mode-manual" style="display: none;">
+    <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
+    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 12px;" id="manual-question">Lade Frage...</div>
+    <div id="manual-options"></div>
   </div>
 
-  <!-- Ergebnisanzeige -->
+  <div id="loading" style="display:none; text-align:center; margin-top:15px; color:var(--primary); font-weight:600;">
+    ⏳ Analysiere Daten...
+  </div>
+
+  <!-- GEMEINSAME ERGEBNISANZEIGE -->
   <div id="result" style="display: none;" class="result-box">
     <div id="result-badge" class="badge"></div>
     <h3 id="result-title" style="margin-top: 6px;"></h3>
@@ -185,22 +213,112 @@
     
     <p id="result-summary" style="text-align: left; margin-top: 12px; line-height: 1.5;"></p>
     
-    <div style="text-align: left; margin-top: 12px;">
+    <div id="evidence-container" style="text-align: left; margin-top: 12px; display: none;">
       <b>Gefundene Nachweise im Text:</b>
       <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 6px;"></ul>
     </div>
 
     <button onclick="window.print()" class="btn-print">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
+    <button onclick="resetAll()" style="background-color: #94a3b8; margin-top: 8px;">🔄 Neue Prüfung starten</button>
   </div>
 </div>
 
 <script>
+  // Speicher & Modi
   document.getElementById("api-key").value = localStorage.getItem("gemini_key") || "";
+  function saveKey() { localStorage.setItem("gemini_key", document.getElementById("api-key").value); }
 
-  function saveKey() {
-    localStorage.setItem("gemini_key", document.getElementById("api-key").value);
+  function switchMode(mode) {
+    document.getElementById("mode-ki").style.display = mode === 'ki' ? 'block' : 'none';
+    document.getElementById("mode-manual").style.display = mode === 'manual' ? 'block' : 'none';
+    document.getElementById("tab-ki").className = `tab-btn ${mode === 'ki' ? 'active' : ''}`;
+    document.getElementById("tab-manual").className = `tab-btn ${mode === 'manual' ? 'active' : ''}`;
+    document.getElementById("result").style.display = "none";
+    if (mode === 'manual') renderManualStep();
   }
 
+  // --- MANUELLER FRAGEBOGEN LOGIK ---
+  const manualQuestions = [
+    {
+      q: "1. Wer arbeitet direkt mit dem Tool?",
+      options: [
+        { text: "Nur die Lehrperson (Zentral zur Vorbereitung/Demonstration)", val: "teacher" },
+        { text: "Schüler*innen mit eigenen Konten (Login/Registrierung)", val: "student_login" },
+        { text: "Schüler*innen anonym (ohne Registrierung via Code/Link)", val: "student_anon" }
+      ]
+    },
+    {
+      q: "2. Werden personenbezogene Daten verarbeitet?",
+      options: [
+        { text: "Nein (Keine Klarnamen, E-Mails, Stimmen, Fotos oder Noten)", val: "no_pii" },
+        { text: "Ja (Eingabe oder Speicherung persönlicher Daten)", val: "has_pii" }
+      ]
+    },
+    {
+      q: "3. Wo liegt der Serverstandort?",
+      options: [
+        { text: "EU / EWR oder US-Anbieter mit DPF-Zertifizierung", val: "eu_dpf" },
+        { text: "USA ohne DPF / Drittland / Unbekannt", val: "third_country" }
+      ]
+    },
+    {
+      q: "4. Liegt ein Vertrag zur Auftragsverarbeitung (AVV) vor?",
+      options: [
+        { text: "Ja, AVV (Art. 28 DSGVO) ist vorhanden/abgeschlossen", val: "avv_yes" },
+        { text: "Nein / Nicht vorhanden / Unklar", val: "avv_no" }
+      ]
+    },
+    {
+      q: "5. Wie verhält sich das Tool beim KI-Modelltraining?",
+      options: [
+        { text: "Kein KI-Training mit Daten (Opt-Out aktiv / Schul-Lizenz)", val: "no_train" },
+        { text: "Eingaben/Prompts werden zum KI-Modelltraining genutzt", val: "train" }
+      ]
+    }
+  ];
+
+  let manualStep = 0;
+  let manualAnswers = [];
+
+  function renderManualStep() {
+    const q = manualQuestions[manualStep];
+    document.getElementById("manual-question").innerText = q.q;
+    document.getElementById("progress").style.width = `${((manualStep + 1) / manualQuestions.length) * 100}%`;
+    
+    const container = document.getElementById("manual-options");
+    container.innerHTML = "";
+    q.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "btn-option";
+      btn.innerText = opt.text;
+      btn.onclick = () => {
+        manualAnswers[manualStep] = opt.val;
+        manualStep++;
+        if (manualStep < manualQuestions.length) renderManualStep();
+        else evaluateManual();
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  function evaluateManual() {
+    const [userGroup, pii, server, avv, train] = manualAnswers;
+    let status = "GREEN", title = "Unbedenklich nutzbar", summary = "Das Tool erfüllt in dieser Kombination die DSGVO-Anforderungen für Schulen.";
+
+    if ((userGroup === "student_login" && avv === "avv_no") || (pii === "has_pii" && server === "third_country") || train === "train") {
+      status = "RED";
+      title = "Nicht zulässig";
+      summary = "Der Einsatz verstößt gegen Datenschutzvorgaben (z. B. fehlender AVV bei Schülerkonten, ungesicherter Drittlandtransfer oder KI-Training mit Daten).";
+    } else if (avv === "avv_no" || server === "third_country" || userGroup === "student_login") {
+      status = "YELLOW";
+      title = "Bedingt nutzbar";
+      summary = "Nutzung nur unter Auflagen: Anonyme Pseudonyme verwenden, KI-Training in den Einstellungen deaktivieren oder nur als Demonstrationsmedium durch die Lehrperson einsetzen.";
+    }
+
+    showResult(status, title, summary, []);
+  }
+
+  // --- KI-ANALYSE LOGIK ---
   async function analyzeText() {
     const apiKey = document.getElementById("api-key").value.trim();
     const text = document.getElementById("policy-text").value.trim();
@@ -209,27 +327,19 @@
     if (!text) return alert("Bitte füge den Text der Datenschutzerklärung ein.");
 
     document.getElementById("loading").style.display = "block";
-    document.getElementById("result").style.display = "none";
 
     const prompt = `
     Analysiere diesen Text einer Datenschutzerklärung für den Einsatz an Schulen (DSGVO):
     ---
     ${text}
     ---
-
-    Gib die Antwort streng im folgenden JSON-Format zurück:
+    Gib die Antwort streng im JSON-Format zurück:
     {
       "status": "GREEN" oder "YELLOW" oder "RED",
-      "title": "Kurzer Titel der Bewertung",
-      "summary": "Verständliche Zusammenfassung für Lehrpersonen (2-3 Sätze).",
-      "evidence": ["Zitat 1 aus dem Text", "Zitat 2 aus dem Text"]
-    }
-    
-    Kriterien:
-    - RED: Datentransfer in unsichere Drittländer ohne DPF, KI-Training mit Nutzereingaben aktiv oder kein AVV bei Schüler-Accounts.
-    - YELLOW: Nutzung bedingt möglich (z.B. nur durch Lehrperson, Opt-Out für KI-Training nötig).
-    - GREEN: Hosting in der EU, kein KI-Training, AVV verfügbar.
-    `;
+      "title": "Kurzer Titel",
+      "summary": "Zusammenfassung für Lehrpersonen (2-3 Sätze).",
+      "evidence": ["Zitat 1", "Zitat 2"]
+    }`;
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
@@ -241,35 +351,55 @@
         })
       });
 
-      if (!response.ok) throw new Error("API-Aufruf fehlgeschlagen. Überprüfe den API-Schlüssel.");
-
+      if (!response.ok) throw new Error("API-Aufruf fehlgeschlagen.");
       const rawData = await response.json();
-      const resultJson = JSON.parse(rawData.candidates[0].content.parts[0].text);
+      const res = JSON.parse(rawData.candidates[0].content.parts[0].text);
+      showResult(res.status, res.title, res.summary, res.evidence);
 
-      const resDiv = document.getElementById("result");
-      resDiv.className = `result-box ${resultJson.status}`;
-      resDiv.style.display = "block";
+    } catch (err) {
+      alert("Fehler bei der KI-Analyse: " + err.message);
+    } finally {
+      document.getElementById("loading").style.display = "none";
+    }
+  }
 
-      document.getElementById("result-badge").innerText = resultJson.status;
-      document.getElementById("result-title").innerText = resultJson.title;
-      document.getElementById("result-summary").innerText = resultJson.summary;
+  // --- ANZEIGE-FUNKTION ---
+  function showResult(status, title, summary, evidence) {
+    document.getElementById("mode-ki").style.display = "none";
+    document.getElementById("mode-manual").style.display = "none";
+    
+    const resDiv = document.getElementById("result");
+    resDiv.className = `result-box ${status}`;
+    resDiv.style.display = "block";
 
-      const now = new Date();
-      document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr`;
+    document.getElementById("result-badge").innerText = status;
+    document.getElementById("result-title").innerText = title;
+    document.getElementById("result-summary").innerText = summary;
 
-      const list = document.getElementById("result-evidence");
+    const now = new Date();
+    document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr`;
+
+    const evContainer = document.getElementById("evidence-container");
+    const list = document.getElementById("result-evidence");
+    
+    if (evidence && evidence.length > 0) {
+      evContainer.style.display = "block";
       list.innerHTML = "";
-      resultJson.evidence.forEach(item => {
+      evidence.forEach(item => {
         const li = document.createElement("li");
         li.innerText = item;
         list.appendChild(li);
       });
-
-    } catch (err) {
-      alert("Fehler: " + err.message);
-    } finally {
-      document.getElementById("loading").style.display = "none";
+    } else {
+      evContainer.style.display = "none";
     }
+  }
+
+  function resetAll() {
+    manualStep = 0;
+    manualAnswers = [];
+    document.getElementById("policy-text").value = "";
+    switchMode('ki');
   }
 </script>
 </body>
