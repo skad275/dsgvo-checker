@@ -38,9 +38,10 @@
 
     .api-box {
       background: #f1f5f9;
-      padding: 12px;
+      padding: 14px;
       border-radius: 8px;
       margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
     }
 
     input, textarea, button {
@@ -64,6 +65,15 @@
 
     button:hover { background-color: #1d4ed8; }
 
+    .btn-print {
+      background-color: #475569;
+      margin-top: 16px;
+    }
+    
+    .btn-print:hover {
+      background-color: #334155;
+    }
+
     .result-box {
       padding: 20px;
       border-radius: 8px;
@@ -82,19 +92,52 @@
       border-radius: 20px;
       margin-bottom: 10px;
     }
+
+    /* Print-Styling: Versteckt Formularelemente & optimiert das PDF-Layout */
+    @media print {
+      body {
+        background-color: #ffffff;
+        padding: 0;
+      }
+      .card {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .api-box, textarea, button, .subtitle, details, #loading, label {
+        display: none !important;
+      }
+      .result-box {
+        border-width: 2px !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
   <h2>🛡️ DSGVO Tool-Checker für Schulen</h2>
-  <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Analysiere Datenschutzerklärungen von KI-Tools direkt im Browser.</p>
+  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Analysiere Datenschutzerklärungen von KI-Tools direkt im Browser.</p>
 
-  <!-- API Schlüssel -->
+  <!-- API Schlüssel Bereich -->
   <div class="api-box">
     <label style="font-size: 0.85rem; font-weight: 600;">Gemini API-Schlüssel:</label>
     <input type="password" id="api-key" placeholder="AIzaSy..." onchange="saveKey()">
-    <span style="font-size: 0.75rem; color: #64748b;">Wird nur lokal in deinem Browser gespeichert.</span>
+    <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 4px;">Wird nur lokal in deinem eigenen Browser gespeichert.</span>
+
+    <details style="margin-top: 10px; font-size: 0.85rem; color: #334155;">
+      <summary style="cursor: pointer; font-weight: 600; color: var(--primary); user-select: none;">🔑 Woher bekomme ich einen kostenlosen API-Schlüssel? (Hilfe)</summary>
+      <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #cbd5e1; line-height: 1.5;">
+        <ol style="margin-left: 20px; padding-left: 0;">
+          <li>Gehe auf <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600;">aistudio.google.com</a> und melde dich mit deinem Google-Konto an.</li>
+          <li>Klicke auf <b>"Get API key"</b> und dann auf <b>"Create API key in new project"</b>.</li>
+          <li>Kopiere den erzeugten Schlüssel (beginnt mit <code>AIzaSy...</code>) und füge ihn oben ein.</li>
+        </ol>
+      </div>
+    </details>
   </div>
 
   <!-- Text-Eingabe -->
@@ -108,20 +151,25 @@
     ⏳ Analysiere Text mit Gemini...
   </div>
 
-  <!-- Ergebnisanzeige -->
+  <!-- Ergebnisanzeige mit Datum und PDF-Druckbutton -->
   <div id="result" style="display: none;" class="result-box">
     <div id="result-badge" class="badge"></div>
-    <h3 id="result-title"></h3>
+    <h3 id="result-title" style="margin-top: 6px;"></h3>
+    <div id="result-date" style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;"></div>
+    
     <p id="result-summary" style="text-align: left; margin-top: 12px; line-height: 1.5;"></p>
+    
     <div style="text-align: left; margin-top: 12px;">
       <b>Gefundene Nachweise im Text:</b>
       <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 6px;"></ul>
     </div>
+
+    <!-- Druck- & PDF-Button -->
+    <button onclick="window.print()" class="btn-print">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
   </div>
 </div>
 
 <script>
-  // API Key lokal speichern/laden
   document.getElementById("api-key").value = localStorage.getItem("gemini_key") || "";
 
   function saveKey() {
@@ -159,7 +207,6 @@
     `;
 
     try {
-      // Direkter API-Aufruf an Google Gemini aus dem Browser
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -174,7 +221,6 @@
       const rawData = await response.json();
       const resultJson = JSON.parse(rawData.candidates[0].content.parts[0].text);
 
-      // Ergebnis im UI anzeigen
       const resDiv = document.getElementById("result");
       resDiv.className = `result-box ${resultJson.status}`;
       resDiv.style.display = "block";
@@ -182,6 +228,10 @@
       document.getElementById("result-badge").innerText = resultJson.status;
       document.getElementById("result-title").innerText = resultJson.title;
       document.getElementById("result-summary").innerText = resultJson.summary;
+
+      // Datum für das Prüfprotokoll setzen
+      const now = new Date();
+      document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr`;
 
       const list = document.getElementById("result-evidence");
       list.innerHTML = "";
