@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSGVO Tool-Checker (Browser-Version)</title>
+  <title>DSGVO Tool-Checker für Schulen</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -42,6 +42,17 @@
       border-radius: 8px;
       margin-bottom: 20px;
       border: 1px solid #e2e8f0;
+    }
+
+    .instruction-hint {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary);
+      padding: 10px 12px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: #1e40af;
     }
 
     input, textarea, button {
@@ -93,7 +104,6 @@
       margin-bottom: 10px;
     }
 
-    /* Print-Styling: Versteckt Formularelemente & optimiert das PDF-Layout */
     @media print {
       body {
         background-color: #ffffff;
@@ -105,7 +115,7 @@
         padding: 0;
         max-width: 100%;
       }
-      .api-box, textarea, button, .subtitle, details, #loading, label {
+      .api-box, textarea, button, .subtitle, details, #loading, label, .instruction-hint {
         display: none !important;
       }
       .result-box {
@@ -122,28 +132,44 @@
   <h2>🛡️ DSGVO Tool-Checker für Schulen</h2>
   <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Analysiere Datenschutzerklärungen von KI-Tools direkt im Browser.</p>
 
-  <!-- API Schlüssel Bereich -->
+  <!-- API-Schlüssel Bereich -->
   <div class="api-box">
     <label style="font-size: 0.85rem; font-weight: 600;">Gemini API-Schlüssel:</label>
     <input type="password" id="api-key" placeholder="AIzaSy..." onchange="saveKey()">
-    <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 4px;">Wird nur lokal in deinem eigenen Browser gespeichert.</span>
+    
+    <!-- Link zur Anleitung direkt unter dem Eingabefeld -->
+    <div style="margin-top: 8px; font-size: 0.85rem;">
+      👉 <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
+        Hier klicken: Anleitung & kostenlosen API-Schlüssel auf Google AI Studio erstellen
+      </a>
+    </div>
 
-    <details style="margin-top: 10px; font-size: 0.85rem; color: #334155;">
-      <summary style="cursor: pointer; font-weight: 600; color: var(--primary); user-select: none;">🔑 Woher bekomme ich einen kostenlosen API-Schlüssel? (Hilfe)</summary>
+    <!-- Ausklappbare Kurzanleitung -->
+    <details style="margin-top: 12px; font-size: 0.85rem; color: #334155;">
+      <summary style="cursor: pointer; font-weight: 600; color: var(--primary); user-select: none;">ℹ️ Kurzanleitung zur Schlüsselerstellung anzeigen</summary>
       <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #cbd5e1; line-height: 1.5;">
         <ol style="margin-left: 20px; padding-left: 0;">
-          <li>Gehe auf <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600;">aistudio.google.com</a> und melde dich mit deinem Google-Konto an.</li>
-          <li>Klicke auf <b>"Get API key"</b> und dann auf <b>"Create API key in new project"</b>.</li>
+          <li>Öffne <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600;">aistudio.google.com</a> und melde dich mit deinem Google-Konto an.</li>
+          <li>Klicke auf <b>"Get API key"</b> und danach auf <b>"Create API key in new project"</b>.</li>
           <li>Kopiere den erzeugten Schlüssel (beginnt mit <code>AIzaSy...</code>) und füge ihn oben ein.</li>
         </ol>
       </div>
     </details>
   </div>
 
-  <!-- Text-Eingabe -->
+  <!-- Text-Eingabebereich mit detaillierter Hilfestellung -->
   <div>
-    <label style="font-weight: 600;">Datenschutzerklärung / AGB (Text hier reinkopieren):</label>
-    <textarea id="policy-text" rows="6" placeholder="Kopiere den Text der Datenschutzerklärung der KI-Anwendung hier hinein..."></textarea>
+    <label style="font-weight: 600; display: block; margin-bottom: 6px;">Datenschutzerklärung des Tools:</label>
+    
+    <div class="instruction-hint">
+      <b>📋 Vorgehensweise:</b><br>
+      1. Suche auf der Website des gewünschten Tools ganz unten im Fußbereich (Footer) nach der Datenschutzerklärung.<br>
+      2. Achte bei englischsprachigen Tools auf Begriffe wie <b>Privacy Policy</b>, <b>Privacy Statement</b>, <b>Terms of Service (ToS)</b> oder <b>Data Processing Addendum (DPA)</b>.<br>
+      3. Markiere den gesamten Text auf der Seite, kopiere ihn (<code>Strg + C</code>) und füge ihn unten in das Feld ein (<code>Strg + V</code>).
+    </div>
+
+    <textarea id="policy-text" rows="7" placeholder="Kopiere hier den gesamten Text der Datenschutzerklärung (oder Privacy Policy / Terms of Service) hinein..."></textarea>
+    
     <button onclick="analyzeText()" id="btn-analyze">🔍 KI-Analyse starten</button>
   </div>
 
@@ -151,7 +177,7 @@
     ⏳ Analysiere Text mit Gemini...
   </div>
 
-  <!-- Ergebnisanzeige mit Datum und PDF-Druckbutton -->
+  <!-- Ergebnisanzeige -->
   <div id="result" style="display: none;" class="result-box">
     <div id="result-badge" class="badge"></div>
     <h3 id="result-title" style="margin-top: 6px;"></h3>
@@ -164,7 +190,6 @@
       <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 6px;"></ul>
     </div>
 
-    <!-- Druck- & PDF-Button -->
     <button onclick="window.print()" class="btn-print">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
   </div>
 </div>
@@ -229,7 +254,6 @@
       document.getElementById("result-title").innerText = resultJson.title;
       document.getElementById("result-summary").innerText = resultJson.summary;
 
-      // Datum für das Prüfprotokoll setzen
       const now = new Date();
       document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr`;
 
