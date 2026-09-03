@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSGVO Tool-Checker für Schulen</title>
+  <title>DSGVO & OER Tool-Checker für Schulen</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -15,6 +15,7 @@
       --green: #16a34a;
       --yellow: #ca8a04;
       --red: #dc2626;
+      --purple: #7c3aed;
     }
 
     body {
@@ -37,7 +38,31 @@
       border: 1px solid #e2e8f0;
     }
 
-    /* Tab-Steuerung */
+    .search-box {
+      background: #eff6ff;
+      border: 2px solid #bfdbfe;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-input-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .status-msg {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      display: none;
+    }
+    .status-msg.found { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .status-msg.not-found { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
     .tab-nav {
       display: flex;
       gap: 6px;
@@ -73,7 +98,7 @@
       border: 1px solid #e2e8f0;
     }
 
-    select, input, textarea, button {
+    input, select, textarea, button {
       width: 100%;
       padding: 10px;
       margin-top: 6px;
@@ -90,7 +115,6 @@
       font-weight: 600;
       border: none;
       cursor: pointer;
-      margin-top: 12px;
     }
 
     button:hover { background-color: var(--primary-hover); }
@@ -131,7 +155,19 @@
       font-weight: bold;
       padding: 4px 12px;
       border-radius: 20px;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
+    }
+
+    .oer-badge {
+      display: inline-block;
+      font-weight: 600;
+      font-size: 0.85rem;
+      background: #f3e8ff;
+      color: var(--purple);
+      border: 1px solid #d8b4fe;
+      padding: 4px 12px;
+      border-radius: 12px;
+      margin-top: 6px;
     }
 
     .progress-bg {
@@ -145,14 +181,14 @@
     .progress-fill {
       height: 100%;
       background: var(--primary);
-      width: 20%;
+      width: 16%;
       transition: width 0.3s ease;
     }
 
     @media print {
       body { background: #fff; padding: 0; }
       .card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      .tab-nav, .api-box, .hint-box, textarea, select, button, .subtitle, details, #loading, label, .progress-bg {
+      .search-box, .tab-nav, .api-box, .hint-box, textarea, select, button, .subtitle, details, #loading, label, .progress-bg, .status-msg {
         display: none !important;
       }
       .result-box {
@@ -166,40 +202,41 @@
 <body>
 
 <div class="card">
-  <h2>🛡️ DSGVO Tool-Checker für Schulen</h2>
-  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Prüfe digitale Anwendungen per Vorauswahl, KI-Textscan oder Fragebogen.</p>
+  <h2>🛡️ DSGVO & OER Tool-Checker für Schulen</h2>
+  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Prüfe Anwendungen auf Datenschutz (DSGVO) und Open Educational Resources (OER).</p>
 
-  <!-- Modus-Wahl Tabs -->
-  <div class="tab-nav">
+  <div class="search-box">
+    <label style="font-weight: 700; color: #1e3a8a;">🔗 Tool oder Link überprüfen:</label>
+    <div class="search-input-group">
+      <input type="text" id="tool-search-input" placeholder="z. B. https://padlet.com, Canva oder TaskCards..." style="margin-top:0;">
+      <button onclick="checkToolUrl()" style="width: 140px; margin-top:0;">Prüfen</button>
+    </div>
+  </div>
+
+  <div id="status-msg" class="status-msg"></div>
+
+  <div class="tab-nav" id="tab-nav">
     <button class="tab-btn active" id="tab-preset" onclick="switchMode('preset')">⚡ Vorgeprüfte Tools</button>
     <button class="tab-btn" id="tab-ki" onclick="switchMode('ki')">🤖 KI-Analyse</button>
     <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Fragebogen</button>
   </div>
 
-  <!-- BEREICH 1: SCHNELLAUSWAHL (PRESETS) -->
   <div id="mode-preset">
     <label style="font-weight: 600; display: block; margin-bottom: 6px;">Wähle ein bekanntes Tool aus der Liste:</label>
     <select id="preset-select" onchange="loadPreset()">
       <option value="">-- Bitte Tool auswählen --</option>
       <option value="canva">Canva for Education</option>
       <option value="padlet">Padlet</option>
-      <option value="kahoot">Kahoot!</option>
-      <option value="geogebra">GeoGebra</option>
       <option value="taskcards">TaskCards</option>
+      <option value="geogebra">GeoGebra</option>
       <option value="chatgpt_free">ChatGPT (Kostenloses Privatkonto)</option>
-      <option value="chatpdf">ChatPDF (Kostenlose Browserversion)</option>
     </select>
-    <p style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
-      <i>Hinweis: Diese Vorbewertungen basieren auf den allgemeinen Schul-Abonnements und Standard-Datenschutzerklärungen der jeweiligen Anbieter.</i>
-    </p>
   </div>
 
-  <!-- BEREICH 2: KI-ANALYSE -->
   <div id="mode-ki" style="display: none;">
     <div class="api-box">
       <label style="font-size: 0.85rem; font-weight: 600;">Gemini API-Schlüssel:</label>
       <input type="password" id="api-key" placeholder="AIzaSy..." onchange="saveKey()">
-      
       <div style="margin-top: 8px; font-size: 0.85rem;">
         👉 <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
           Anleitung & kostenlosen API-Schlüssel auf Google AI Studio erstellen
@@ -208,14 +245,13 @@
     </div>
 
     <div class="hint-box" style="font-size: 0.85rem; line-height: 1.4; color: #1e40af;">
-      <b>📋 Vorgehensweise:</b> Kopiere den Text der Datenschutzerklärung (oder <i>Privacy Policy / Terms of Service</i>) des Tools und füge ihn unten ein.
+      <b>📋 Vorgehensweise:</b> Kopiere die Datenschutzerklärung oder AGB des Tools hinein. Die KI prüft automatisch auch die OER-Tauglichkeit der Nutzungsrechte.
     </div>
 
-    <textarea id="policy-text" rows="6" placeholder="Text der Datenschutzerklärung hier hineinkopieren..."></textarea>
+    <textarea id="policy-text" rows="6" placeholder="Text der Datenschutzerklärung / AGB hier hineinkopieren..."></textarea>
     <button onclick="analyzeText()" id="btn-analyze">🔍 KI-Analyse starten</button>
   </div>
 
-  <!-- BEREICH 3: MANUELLER FRAGEBOGEN -->
   <div id="mode-manual" style="display: none;">
     <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
     <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 12px;" id="manual-question">Lade Frage...</div>
@@ -226,10 +262,11 @@
     ⏳ Analysiere Daten...
   </div>
 
-  <!-- GEMEINSAME ERGEBNISANZEIGE -->
   <div id="result" style="display: none;" class="result-box">
-    <div id="result-badge" class="badge"></div>
-    <h3 id="result-title" style="margin-top: 6px;"></h3>
+    <div id="result-badge" class="badge"></div><br>
+    <div id="result-oer-badge" class="oer-badge"></div>
+    
+    <h3 id="result-title" style="margin-top: 10px;"></h3>
     <div id="result-date" style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;"></div>
     
     <p id="result-summary" style="text-align: left; margin-top: 12px; line-height: 1.5;"></p>
@@ -245,81 +282,94 @@
 </div>
 
 <script>
-  // Datenbank für vorgeprüfte Schul-Tools
   const presetsData = {
     "canva": {
+      keywords: ["canva", "canva.com"],
       status: "GREEN",
       title: "Canva for Education",
-      summary: "Hervorragend geeignet. Das spezielle kostenlose Bildungspaket für Lehrkräfte und Schulen beinhaltet einen vollwertigen AVV (Auftragsverarbeitungsvertrag). Daten werden nicht zum KI-Modelltraining verwendet.",
+      summary: "DSGVO: Sehr gut (Bildungspaket mit AVV). OER: Eingeschränkt – Material kann exportiert werden (PDF/PNG), Weiterbearbeitung erfordert jedoch einen Canva-Account.",
+      oer_status: "🟡 OER: Bedingt geeignet (Proprietäres Format)",
       evidence: [
-        "Integrierter AVV im Konto für zertifizierte Bildungs-Tenants.",
-        "Ausdrücklicher Ausschluss des KI-Trainings mit Nutzerdaten im Education-Tarif.",
-        "Schülerkonten werden über den Lehrkräfte-Zugang datenschutzkonform verwaltet."
+        "AVV im Schul-Account integriert.",
+        "Erstelltes Material darf frei genutzt werden, für Remixe/Bearbeitungen benötigen andere Personen jedoch ebenfalls Canva."
       ]
     },
     "padlet": {
+      keywords: ["padlet", "padlet.com"],
       status: "YELLOW",
       title: "Padlet",
-      summary: "Bedingt nutzbar. Die Nutzung ist unbedenklich, wenn Schüler*innen anonym ohne eigenen Account über einen Freigabelink/QR-Code teilnehmen. Für registrierte Schülerkonten ist eine Schul-Lizenz mit AVV nötig.",
+      summary: "DSGVO: Bedingt (anonyme Nutzung über Link empfohlen). OER: Gut – Inhalte können als PDF/CSV exportiert und unter Creative Commons Lizenzen geteilt werden.",
+      oer_status: "🟢 OER: Gut geeignet (Guter Export)",
       evidence: [
-        "Anonyme Teilnahme ohne Login ist datenschutzfreundlich möglich.",
-        "US-Serverstandort; DPF-Zertifizierung der Muttergesellschaft beachten.",
-        "Keine echten Namen bei anonymen Text- und Medienbeiträgen eingeben."
-      ]
-    },
-    "kahoot": {
-      status: "YELLOW",
-      title: "Kahoot!",
-      summary: "Bedingt nutzbar. Das Eintreten in Spielrunden via Game-PIN (anonymer Nickname, keine Registrierung der Schüler*innen) ist im Unterricht zulässig.",
-      evidence: [
-        "Schüler*innen benötigen für die Live-Quizzes keinen Account.",
-        "Anweisungen geben: Pseudonyme/Spitznamen statt echter Vor- und Nachnamen wählen.",
-        "AVV ist nur erforderlich, wenn individuelle Schülerkonten angelegt werden."
-      ]
-    },
-    "geogebra": {
-      status: "GREEN",
-      title: "GeoGebra",
-      summary: "Unbedenklich nutzbar. Die dynamische Mathematik-Software kann vollständig ohne Registrierung und ohne Erhebung personenbezogener Daten genutzt werden.",
-      evidence: [
-        "Browserversion ohne Login funktionsfähig.",
-        "Hosting entspricht den EU-Datenschutzstandards.",
-        "Keine Verarbeitung sensibler Schülerdaten im Standard-Unterrichtseinsatz."
+        "Anonyme Teilnahme möglich.",
+        "Exporte als PDF/Bild zur Weitergabe als Lehrmaterial unterstützt."
       ]
     },
     "taskcards": {
+      keywords: ["taskcards", "taskcards.de"],
       status: "GREEN",
       title: "TaskCards",
-      summary: "Unbedenklich nutzbar. Als deutsche Alternative zu Padlet wird die Plattform auf DSGVO-konformen Servern in Deutschland gehostet.",
+      summary: "DSGVO: Hervorragend (Server in Deutschland). OER: Vorbildlich – Pinnwände können als JSON/PDF exportiert und problemlos mit anderen Lehrkräften geteilt werden.",
+      oer_status: "🟢 OER: Vorbildlich (Offene Schnittstellen)",
       evidence: [
-        "Serverstandort ausschließlich Deutschland (ISO 27001 zertifiziert).",
-        "AVV kann direkt online mit dem deutschen Anbieter abgeschlossen werden.",
-        "Vollständig DSGVO-konformer Einsatz für Lehrpersonen und Schüler*innen."
+        "Serverstandort Deutschland mit AVV.",
+        "JSON-Export erlaubt echtes Remixen und Wiederverwenden von Boards."
+      ]
+    },
+    "geogebra": {
+      keywords: ["geogebra", "geogebra.org"],
+      status: "GREEN",
+      title: "GeoGebra",
+      summary: "DSGVO: Unbedenklich. OER: Ausgezeichnet – GeoGebra-Materialien stehen standardmäßig unter freien Lizenzen (CC BY-NC-SA) zur Verfügung.",
+      oer_status: "🟢 OER: Voll OER-konform (Creative Commons)",
+      evidence: [
+        "Nutzung ohne Login möglich.",
+        "Integrierte Creative-Commons-Lizenzierung auf der Plattform."
       ]
     },
     "chatgpt_free": {
+      keywords: ["chatgpt", "openai", "chatgpt.com"],
       status: "RED",
       title: "ChatGPT (Kostenloses Privatkonto)",
-      summary: "Nicht zulässig für Schüler*innen. Standardmäßig werden Eingaben/Prompts zum Training der KI-Modelle verwendet. Zudem fehlt eine vertragliche Grundlage (AVV) für Schulklassen.",
+      summary: "DSGVO: Nicht zulässig für Schülerkonten. OER: Unklar – Rechte an KI-Outputs schwanken je nach Rechtsprechung, Weitergabe der Texte ist rechtlich meist gemeinfrei.",
+      oer_status: "⚪ OER: Nicht bewertet / Gemeinfrei",
       evidence: [
-        "Aktiviertes KI-Training mit Nutzereingaben im kostenlosen Standard-Konto.",
-        "Kein DSGVO-konformer AVV für private Einzelkonten verfügbar.",
-        "US-Serverübertragung ohne schulspezifische Schutzgarantien."
-      ]
-    },
-    "chatpdf": {
-      status: "RED",
-      title: "ChatPDF (Kostenlose Webversion)",
-      summary: "Nicht zulässig für personenbezogene Dokumente oder direkte Schülerverwendung mit Registrierung. Dokumente werden auf Drittland-Server hochgeladen.",
-      evidence: [
-        "Kein Auftragsverarbeitungsvertrag (AVV) für Schulen vorhanden.",
-        "Hochgeladene Dokumente (z. B. Schüleraufsätze oder Notenlisten) dürfen keine Personenbezüge enthalten.",
-        "Nutzung allenfalls als Demonstrationsmedium durch die Lehrperson mit anonymen Texten."
+        "Modelltraining mit Nutzereingaben aktiv.",
+        "KI-Texte unterliegen in der EU keinem klassischen Urheberrecht, sind somit frei nutzbar."
       ]
     }
   };
 
-  // Speicher & Modi
+  function checkToolUrl() {
+    const rawInput = document.getElementById("tool-search-input").value.trim().toLowerCase();
+    const statusMsg = document.getElementById("status-msg");
+
+    if (!rawInput) return alert("Bitte gib einen Link oder Namen ein.");
+
+    const cleanInput = rawInput.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+
+    let foundKey = null;
+    for (const [key, tool] of Object.entries(presetsData)) {
+      if (tool.keywords.some(kw => cleanInput.includes(kw) || kw.includes(cleanInput))) {
+        foundKey = key;
+        break;
+      }
+    }
+
+    if (foundKey) {
+      const tool = presetsData[foundKey];
+      statusMsg.className = "status-msg found";
+      statusMsg.innerHTML = `✅ <b>Tool in Datenbank gefunden!</b>`;
+      statusMsg.style.display = "block";
+      showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status);
+    } else {
+      statusMsg.className = "status-msg not-found";
+      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Starte die Prüfung per KI oder Fragebogen.`;
+      statusMsg.style.display = "block";
+      switchMode('ki');
+    }
+  }
+
   document.getElementById("api-key").value = localStorage.getItem("gemini_key") || "";
   function saveKey() { localStorage.setItem("gemini_key", document.getElementById("api-key").value); }
 
@@ -340,10 +390,10 @@
     const val = document.getElementById("preset-select").value;
     if (!val) return;
     const tool = presetsData[val];
-    showResult(tool.status, tool.title, tool.summary, tool.evidence);
+    showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status);
   }
 
-  // --- MANUELLER FRAGEBOGEN LOGIK ---
+  // FRAGEBOGEN INKLUSIVE OPTIONALER OER-FRAGE (STEP 6)
   const manualQuestions = [
     {
       q: "1. Wer arbeitet direkt mit dem Tool?",
@@ -380,6 +430,15 @@
         { text: "Kein KI-Training mit Daten (Opt-Out aktiv / Schul-Lizenz)", val: "no_train" },
         { text: "Eingaben/Prompts werden zum KI-Modelltraining genutzt", val: "train" }
       ]
+    },
+    {
+      q: "6. (Optional) OER-Tauglichkeit & Output-Lizenzen:",
+      options: [
+        { text: "Export in offenen Formaten (PDF, SVG, ODT) & frei lizenzierbar (CC)", val: "oer_full" },
+        { text: "Export nur in geschlossenen Formaten (Bearbeitung braucht Account)", val: "oer_limited" },
+        { text: "AGB schränken Rechte am erzeugten Material ein", val: "oer_restricted" },
+        { text: "OER nicht prüfen / Übergehen", val: "oer_skip" }
+      ]
     }
   ];
 
@@ -408,34 +467,38 @@
   }
 
   function evaluateManual() {
-    const [userGroup, pii, server, avv, train] = manualAnswers;
-    let status = "GREEN", title = "Unbedenklich nutzbar", summary = "Das Tool erfüllt in dieser Kombination die DSGVO-Anforderungen für Schulen.";
+    const [userGroup, pii, server, avv, train, oer] = manualAnswers;
+    let status = "GREEN", title = "Unbedenklich nutzbar", summary = "Das Tool erfüllt die DSGVO-Anforderungen für Schulen.";
 
     if ((userGroup === "student_login" && avv === "avv_no") || (pii === "has_pii" && server === "third_country") || train === "train") {
       status = "RED";
       title = "Nicht zulässig";
-      summary = "Der Einsatz verstößt gegen Datenschutzvorgaben (z. B. fehlender AVV bei Schülerkonten, ungesicherter Drittlandtransfer oder KI-Training mit Daten).";
+      summary = "Der Einsatz verstößt gegen Datenschutzvorgaben (z. B. fehlender AVV bei Schülerkonten oder KI-Training mit Daten).";
     } else if (avv === "avv_no" || server === "third_country" || userGroup === "student_login") {
       status = "YELLOW";
       title = "Bedingt nutzbar";
-      summary = "Nutzung nur unter Auflagen: Anonyme Pseudonyme verwenden, KI-Training in den Einstellungen deaktivieren oder nur als Demonstrationsmedium durch die Lehrperson einsetzen.";
+      summary = "Nutzung nur unter Auflagen: Anonyme Pseudonyme verwenden oder nur als Demonstrationsmedium nutzen.";
     }
 
-    showResult(status, title, summary, []);
+    let oerStatus = "⚪ OER: Nicht geprüft";
+    if (oer === "oer_full") oerStatus = "🟢 OER: Hervorragend geeignet (Frei lizenzierbar & offen)";
+    if (oer === "oer_limited") oerStatus = "🟡 OER: Eingeschränkt (Proprietäres Format / Account-Pflicht)";
+    if (oer === "oer_restricted") oerStatus = "🔴 OER: Problematisch (Eingeschränkte Nutzungsrechte laut AGB)";
+
+    showResult(status, title, summary, [], oerStatus);
   }
 
-  // --- KI-ANALYSE LOGIK ---
   async function analyzeText() {
     const apiKey = document.getElementById("api-key").value.trim();
     const text = document.getElementById("policy-text").value.trim();
 
     if (!apiKey) return alert("Bitte gib deinen Gemini API-Schlüssel ein.");
-    if (!text) return alert("Bitte füge den Text der Datenschutzerklärung ein.");
+    if (!text) return alert("Bitte füge den Text ein.");
 
     document.getElementById("loading").style.display = "block";
 
     const prompt = `
-    Analysiere diesen Text einer Datenschutzerklärung für den Einsatz an Schulen (DSGVO):
+    Analysiere diesen Text einer Datenschutzerklärung / AGB für Schulen (DSGVO & OER):
     ---
     ${text}
     ---
@@ -443,8 +506,9 @@
     {
       "status": "GREEN" oder "YELLOW" oder "RED",
       "title": "Kurzer Titel",
-      "summary": "Zusammenfassung für Lehrpersonen (2-3 Sätze).",
-      "evidence": ["Zitat 1", "Zitat 2"]
+      "summary": "DSGVO & OER Zusammenfassung für Lehrpersonen (2-3 Sätze).",
+      "evidence": ["Zitat 1", "Zitat 2"],
+      "oer_status": "🟢 OER-tauglich" ODER "🟡 OER eingeschränkt" ODER "🔴 Nicht OER-konform"
     }`;
 
     try {
@@ -460,7 +524,7 @@
       if (!response.ok) throw new Error("API-Aufruf fehlgeschlagen.");
       const rawData = await response.json();
       const res = JSON.parse(rawData.candidates[0].content.parts[0].text);
-      showResult(res.status, res.title, res.summary, res.evidence);
+      showResult(res.status, res.title, res.summary, res.evidence, res.oer_status);
 
     } catch (err) {
       alert("Fehler bei der KI-Analyse: " + err.message);
@@ -469,8 +533,7 @@
     }
   }
 
-  // --- ANZEIGE-FUNKTION ---
-  function showResult(status, title, summary, evidence) {
+  function showResult(status, title, summary, evidence, oerBadgeText) {
     document.getElementById("mode-preset").style.display = "none";
     document.getElementById("mode-ki").style.display = "none";
     document.getElementById("mode-manual").style.display = "none";
@@ -479,7 +542,8 @@
     resDiv.className = `result-box ${status}`;
     resDiv.style.display = "block";
 
-    document.getElementById("result-badge").innerText = status;
+    document.getElementById("result-badge").innerText = `DSGVO: ${status}`;
+    document.getElementById("result-oer-badge").innerText = oerBadgeText || "⚪ OER: Nicht bewertet";
     document.getElementById("result-title").innerText = title;
     document.getElementById("result-summary").innerText = summary;
 
@@ -505,6 +569,8 @@
   function resetAll() {
     manualStep = 0;
     manualAnswers = [];
+    document.getElementById("tool-search-input").value = "";
+    document.getElementById("status-msg").style.display = "none";
     document.getElementById("preset-select").value = "";
     document.getElementById("policy-text").value = "";
     switchMode('preset');
