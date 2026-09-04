@@ -235,17 +235,28 @@
 
   <div id="mode-ki" style="display: none;">
     <div class="api-box">
-      <label style="font-size: 0.85rem; font-weight: 600;">Gemini API-Schlüssel:</label>
-      <input type="password" id="api-key" placeholder="AIzaSy..." onchange="saveKey()">
+      <label style="font-size: 0.85rem; font-weight: 600;">OpenRouter API-Schlüssel:</label>
+      <input type="password" id="api-key" placeholder="sk-or-v1-..." onchange="saveKey()">
+      
+      <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-top: 10px;">KI-Modell auswählen:</label>
+      <select id="model-select">
+        <option value="google/gemini-2.5-flash">Google Gemini 2.5 Flash (Schnell & Günstig)</option>
+        <option value="anthropic/claude-3.5-sonnet">Anthropic Claude 3.5 Sonnet (Stark im Recht)</option>
+        <option value="openai/gpt-4o-mini">OpenAI GPT-4o-mini (Kompakt & Verlässlich)</option>
+        <option value="meta-llama/llama-3.3-70b-instruct">Meta Llama 3.3 70B (Open Source)</option>
+        <option value="meta-llama/llama-3.3-70b-instruct:free">Meta Llama 3.3 70B (Kostenlos)</option>
+        <option value="google/gemini-2.5-flash:free">Google Gemini 2.5 Flash (Kostenlos)</option>
+      </select>
+
       <div style="margin-top: 8px; font-size: 0.85rem;">
-        👉 <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
-          Anleitung & kostenlosen API-Schlüssel auf Google AI Studio erstellen
+        👉 <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
+          API-Schlüssel auf OpenRouter.ai erstellen
         </a>
       </div>
     </div>
 
     <div class="hint-box" style="font-size: 0.85rem; line-height: 1.4; color: #1e40af;">
-      <b>📋 Vorgehensweise:</b> Kopiere die Datenschutzerklärung oder AGB des Tools hinein. Die KI prüft automatisch auch die OER-Tauglichkeit der Nutzungsrechte.
+      <b>📋 Vorgehensweise:</b> Kopiere den Text der Datenschutzerklärung, der AGB oder der Nutzungsbedingungen des Tools hier hinein.
     </div>
 
     <textarea id="policy-text" rows="6" placeholder="Text der Datenschutzerklärung / AGB hier hineinkopieren..."></textarea>
@@ -259,7 +270,7 @@
   </div>
 
   <div id="loading" style="display:none; text-align:center; margin-top:15px; color:var(--primary); font-weight:600;">
-    ⏳ Analysiere Daten...
+    ⏳ Analysiere Daten via OpenRouter KI...
   </div>
 
   <div id="result" style="display: none;" class="result-box">
@@ -346,11 +357,9 @@
 
     if (!rawInput) return alert("Bitte gib einen Link oder Namen ein.");
 
-    const cleanInput = rawInput.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-
     let foundKey = null;
     for (const [key, tool] of Object.entries(presetsData)) {
-      if (tool.keywords.some(kw => cleanInput.includes(kw) || kw.includes(cleanInput))) {
+      if (tool.keywords.some(kw => rawInput.includes(kw))) {
         foundKey = key;
         break;
       }
@@ -361,7 +370,7 @@
       statusMsg.className = "status-msg found";
       statusMsg.innerHTML = `✅ <b>Tool in Datenbank gefunden!</b>`;
       statusMsg.style.display = "block";
-      showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status);
+      showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
     } else {
       statusMsg.className = "status-msg not-found";
       statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Starte die Prüfung per KI oder Fragebogen.`;
@@ -370,8 +379,8 @@
     }
   }
 
-  document.getElementById("api-key").value = localStorage.getItem("gemini_key") || "";
-  function saveKey() { localStorage.setItem("gemini_key", document.getElementById("api-key").value); }
+  document.getElementById("api-key").value = localStorage.getItem("openrouter_key") || "";
+  function saveKey() { localStorage.setItem("openrouter_key", document.getElementById("api-key").value); }
 
   function switchMode(mode) {
     document.getElementById("mode-preset").style.display = mode === 'preset' ? 'block' : 'none';
@@ -390,10 +399,9 @@
     const val = document.getElementById("preset-select").value;
     if (!val) return;
     const tool = presetsData[val];
-    showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status);
+    showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
   }
 
-  // FRAGEBOGEN INKLUSIVE OPTIONALER OER-FRAGE (STEP 6)
   const manualQuestions = [
     {
       q: "1. Wer arbeitet direkt mit dem Tool?",
@@ -468,16 +476,16 @@
 
   function evaluateManual() {
     const [userGroup, pii, server, avv, train, oer] = manualAnswers;
-    let status = "GREEN", title = "Unbedenklich nutzbar", summary = "Das Tool erfüllt die DSGVO-Anforderungen für Schulen.";
+    let status = "GREEN", title = "Unbedenklich nutzbar", summary = "Das Tool erfüllt die wesentlichen DSGVO-Anforderungen für den Schuleinsatz.";
 
     if ((userGroup === "student_login" && avv === "avv_no") || (pii === "has_pii" && server === "third_country") || train === "train") {
       status = "RED";
       title = "Nicht zulässig";
-      summary = "Der Einsatz verstößt gegen Datenschutzvorgaben (z. B. fehlender AVV bei Schülerkonten oder KI-Training mit Daten).";
+      summary = "Der Einsatz verstößt gegen Datenschutzvorgaben (z. B. fehlender AVV bei Schülerkonten, Drittlandtransfer ohne Schutz oder KI-Training mit Daten).";
     } else if (avv === "avv_no" || server === "third_country" || userGroup === "student_login") {
       status = "YELLOW";
       title = "Bedingt nutzbar";
-      summary = "Nutzung nur unter Auflagen: Anonyme Pseudonyme verwenden oder nur als Demonstrationsmedium nutzen.";
+      summary = "Nutzung nur unter Auflagen: Anonyme Pseudonyme verwenden, Einwilligung einholen oder ausschließlich als Demonstrationsmedium nutzen.";
     }
 
     let oerStatus = "⚪ OER: Nicht geprüft";
@@ -485,55 +493,86 @@
     if (oer === "oer_limited") oerStatus = "🟡 OER: Eingeschränkt (Proprietäres Format / Account-Pflicht)";
     if (oer === "oer_restricted") oerStatus = "🔴 OER: Problematisch (Eingeschränkte Nutzungsrechte laut AGB)";
 
-    showResult(status, title, summary, [], oerStatus);
+    showResult(status, title, summary, [], oerStatus, "Manueller Fragenkatalog");
   }
 
   async function analyzeText() {
     const apiKey = document.getElementById("api-key").value.trim();
+    const selectedModel = document.getElementById("model-select").value;
     const text = document.getElementById("policy-text").value.trim();
 
-    if (!apiKey) return alert("Bitte gib deinen Gemini API-Schlüssel ein.");
-    if (!text) return alert("Bitte füge den Text ein.");
+    if (!apiKey) return alert("Bitte gib deinen OpenRouter API-Schlüssel ein.");
+    if (!text) return alert("Bitte füge den Text der Datenschutzerklärung oder AGB ein.");
 
     document.getElementById("loading").style.display = "block";
 
-    const prompt = `
-    Analysiere diesen Text einer Datenschutzerklärung / AGB für Schulen (DSGVO & OER):
-    ---
-    ${text}
-    ---
-    Gib die Antwort streng im JSON-Format zurück:
-    {
-      "status": "GREEN" oder "YELLOW" oder "RED",
-      "title": "Kurzer Titel",
-      "summary": "DSGVO & OER Zusammenfassung für Lehrpersonen (2-3 Sätze).",
-      "evidence": ["Zitat 1", "Zitat 2"],
-      "oer_status": "🟢 OER-tauglich" ODER "🟡 OER eingeschränkt" ODER "🔴 Nicht OER-konform"
-    }`;
+    const systemInstruction = `Du bist ein Rechtsexperte für Schuldatenschutz (DSGVO) und Open Educational Resources (OER) in Europa.
+Deine Aufgabe ist es, Datenschutzerklärungen und AGB von Online-Tools für den Schuleinsatz zu bewerten.
+
+BEWERTUNGSKRITERIEN DSGVO:
+- GREEN: Server in EU/EWR oder US-DPF zertifiziert, AVV verfügbar, kein KI-Training mit Daten, klare Trennung von Schülerdaten.
+- YELLOW: Nutzung ohne Login möglich, aber Drittlandtransfer oder fehlender AVV bei Lehrerkonten.
+- RED: KI-Training mit Nutzereingaben, Speicherung personenbezogener Daten in unsicheren Drittländern, Mindestalter schließt Schüler aus.
+
+BEWERTUNGSKRITERIEN OER:
+- 🟢 OER-tauglich: Nutzer behalten volle Rechte, Material als Open Data/CC lizenzierbar, freie Exporte.
+- 🟡 OER eingeschränkt: Bearbeitung setzt Account voraus, proprietäre Formate.
+- 🔴 Nicht OER-konform: Anbieter beansprucht exklusive Rechte am Output oder verbietet Weitergabe.`;
+
+    const prompt = `Analysiere folgenden Rechtstext für den Einsatz an Schulen:
+---
+${text}
+---
+
+Gib das Ergebnis ausschließlich als valides JSON-Objekt zurück mit folgender Struktur:
+{
+  "status": "GREEN" | "YELLOW" | "RED",
+  "title": "Kurzes prägnantes Fazit (max. 5 Wörter)",
+  "summary": "Zusammenfassung für Lehrkräfte zur DSGVO und OER-Konformität (3-4 Sätze).",
+  "evidence": ["Wichtiges Zitat oder Befund 1", "Wichtiges Zitat oder Befund 2"],
+  "oer_status": "🟢 OER-tauglich" | "🟡 OER eingeschränkt" | "🔴 Nicht OER-konform"
+}`;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": window.location.href,
+          "X-Title": "DSGVO Tool Checker",
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { response_mime_type: "application/json" }
+          model: selectedModel,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: prompt }
+          ]
         })
       });
 
-      if (!response.ok) throw new Error("API-Aufruf fehlgeschlagen.");
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || `Fehler Status ${response.status}`);
+      }
+
       const rawData = await response.json();
-      const res = JSON.parse(rawData.candidates[0].content.parts[0].text);
-      showResult(res.status, res.title, res.summary, res.evidence, res.oer_status);
+      let rawText = rawData.choices[0].message.content;
+
+      rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+      const res = JSON.parse(rawText);
+
+      showResult(res.status, res.title, res.summary, res.evidence, res.oer_status, `KI-Analyse (${selectedModel})`);
 
     } catch (err) {
-      alert("Fehler bei der KI-Analyse: " + err.message);
+      alert("Fehler bei der OpenRouter KI-Analyse: " + err.message);
     } finally {
       document.getElementById("loading").style.display = "none";
     }
   }
 
-  function showResult(status, title, summary, evidence, oerBadgeText) {
+  function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo) {
     document.getElementById("mode-preset").style.display = "none";
     document.getElementById("mode-ki").style.display = "none";
     document.getElementById("mode-manual").style.display = "none";
@@ -548,7 +587,8 @@
     document.getElementById("result-summary").innerText = summary;
 
     const now = new Date();
-    document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr`;
+    const sourceStr = sourceInfo ? ` | Methode: ${sourceInfo}` : '';
+    document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr${sourceStr}`;
 
     const evContainer = document.getElementById("evidence-container");
     const list = document.getElementById("result-evidence");
