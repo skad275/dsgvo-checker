@@ -496,13 +496,47 @@
     showResult(status, title, summary, [], oerStatus, "Manueller Fragenkatalog");
   }
 
+  // Hilfsfunktion zur token-sparenden Textfilterung vor dem KI-Aufruf
+  function extractRelevantSections(fullText, maxChars = 12000) {
+    if (!fullText || fullText.length <= maxChars) return fullText;
+
+    const keywords = [
+      "daten", "dsgvo", "gdpr", "server", "usa", "drittland", "übermittlung", 
+      "speicher", "lösch", "auftragsverarbeitung", "avv", "schüler", "kind", 
+      "alter", "einwilligung", "modell", "training", "ki", "ai", "prompt", 
+      "urheberrecht", "lizenz", "cc-by", "creative commons", "nutzungsrecht", 
+      "eigentum", "export", "kommerziell", "drittanbieter"
+    ];
+
+    const paragraphs = fullText.split(/\n\s*\n/);
+    const relevantParagraphs = paragraphs.filter(para => {
+      const lowerPara = para.toLowerCase();
+      return keywords.some(kw => lowerPara.includes(kw));
+    });
+
+    let condensedText = relevantParagraphs.join("\n\n");
+
+    if (condensedText.length < 300) {
+      condensedText = fullText;
+    }
+
+    if (condensedText.length > maxChars) {
+      condensedText = condensedText.substring(0, maxChars) + "\n\n[... Text aus Token-Spargründen gekürzt ...]";
+    }
+
+    return condensedText;
+  }
+
   async function analyzeText() {
     const apiKey = document.getElementById("api-key").value.trim();
     const selectedModel = document.getElementById("model-select").value;
-    const text = document.getElementById("policy-text").value.trim();
+    const rawText = document.getElementById("policy-text").value.trim();
 
     if (!apiKey) return alert("Bitte gib deinen OpenRouter API-Schlüssel ein.");
-    if (!text) return alert("Bitte füge den Text der Datenschutzerklärung oder AGB ein.");
+    if (!rawText) return alert("Bitte füge den Text der Datenschutzerklärung oder AGB ein.");
+
+    // Text vorab filtern & kürzen (spart Eingabe-Tokens)
+    const text = extractRelevantSections(rawText);
 
     document.getElementById("loading").style.display = "block";
 
@@ -544,6 +578,7 @@ WICHTIG: Antworte AUSSCHLIESSLICH im folgenden JSON-Format ohne zusätzlichen Te
         },
         body: JSON.stringify({
           model: selectedModel,
+          max_tokens: 1000, // Schützt vor unberechtigten Vorab-Kontingentsperren
           messages: [
             { role: "system", content: systemInstruction },
             { role: "user", content: prompt }
