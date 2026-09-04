@@ -524,13 +524,13 @@ BEWERTUNGSKRITERIEN OER:
 ${text}
 ---
 
-Gib das Ergebnis ausschließlich als valides JSON-Objekt zurück mit folgender Struktur:
+WICHTIG: Antworte AUSSCHLIESSLICH im folgenden JSON-Format ohne zusätzlichen Text davor oder danach!
 {
-  "status": "GREEN" | "YELLOW" | "RED",
-  "title": "Kurzes prägnantes Fazit (max. 5 Wörter)",
-  "summary": "Zusammenfassung für Lehrkräfte zur DSGVO und OER-Konformität (3-4 Sätze).",
-  "evidence": ["Wichtiges Zitat oder Befund 1", "Wichtiges Zitat oder Befund 2"],
-  "oer_status": "🟢 OER-tauglich" | "🟡 OER eingeschränkt" | "🔴 Nicht OER-konform"
+  "status": "GREEN",
+  "title": "Kurzes prägnantes Fazit",
+  "summary": "Zusammenfassung für Lehrkräfte zur DSGVO und OER-Konformität.",
+  "evidence": ["Zitat 1", "Zitat 2"],
+  "oer_status": "🟢 OER-tauglich"
 }`;
 
     try {
@@ -544,7 +544,6 @@ Gib das Ergebnis ausschließlich als valides JSON-Objekt zurück mit folgender S
         },
         body: JSON.stringify({
           model: selectedModel,
-          response_format: { type: "json_object" },
           messages: [
             { role: "system", content: systemInstruction },
             { role: "user", content: prompt }
@@ -560,7 +559,7 @@ Gib das Ergebnis ausschließlich als valides JSON-Objekt zurück mit folgender S
       const rawData = await response.json();
       let rawText = rawData.choices[0].message.content;
 
-      rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+      rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
       const res = JSON.parse(rawText);
 
       showResult(res.status, res.title, res.summary, res.evidence, res.oer_status, `KI-Analyse (${selectedModel})`);
