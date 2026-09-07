@@ -90,15 +90,7 @@
       border-color: var(--primary);
     }
 
-    .api-box, .hint-box {
-      background: #f1f5f9;
-      padding: 14px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      border: 1px solid #e2e8f0;
-    }
-
-    input, select, textarea, button {
+    input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 6px;
@@ -188,7 +180,7 @@
     @media print {
       body { background: #fff; padding: 0; }
       .card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      .search-box, .tab-nav, .api-box, .hint-box, textarea, select, button, .subtitle, details, #loading, label, .progress-bg, .status-msg {
+      .search-box, .tab-nav, select, button, .subtitle, details, label, .progress-bg, .status-msg {
         display: none !important;
       }
       .result-box {
@@ -217,57 +209,20 @@
 
   <div class="tab-nav" id="tab-nav">
     <button class="tab-btn active" id="tab-preset" onclick="switchMode('preset')">⚡ Vorgeprüfte Tools</button>
-    <button class="tab-btn" id="tab-ki" onclick="switchMode('ki')">🤖 KI-Analyse</button>
     <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Fragebogen</button>
   </div>
 
   <div id="mode-preset">
     <label style="font-weight: 600; display: block; margin-bottom: 6px;">Wähle ein bekanntes Tool aus der Liste:</label>
     <select id="preset-select" onchange="loadPreset()">
-      <option value="">-- Bitte Tool auswählen --</option>
-      <option value="canva">Canva for Education</option>
-      <option value="padlet">Padlet</option>
-      <option value="taskcards">TaskCards</option>
-      <option value="geogebra">GeoGebra</option>
-      <option value="chatgpt_free">ChatGPT (Kostenloses Privatkonto)</option>
+      <option value="">Lade Datenbank...</option>
     </select>
-  </div>
-
-  <div id="mode-ki" style="display: none;">
-    <div class="api-box">
-      <label style="font-size: 0.85rem; font-weight: 600;">API-Schlüssel (Google AI Studio oder OpenRouter):</label>
-      <input type="password" id="api-key" placeholder="AIzaSy... ODER sk-or-v1-..." onchange="saveKey()">
-      
-      <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-top: 10px;">KI-Modell auswählen (falls OpenRouter genutzt wird):</label>
-      <select id="model-select">
-        <option value="google/gemini-2.5-flash:free">Google Gemini 2.5 Flash (Kostenlos)</option>
-        <option value="meta-llama/llama-3.3-70b-instruct:free">Meta Llama 3.3 70B (Kostenlos)</option>
-        <option value="google/gemini-2.5-flash">Google Gemini 2.5 Flash</option>
-        <option value="anthropic/claude-3.5-sonnet">Anthropic Claude 3.5 Sonnet</option>
-        <option value="openai/gpt-4o-mini">OpenAI GPT-4o-mini</option>
-      </select>
-
-      <div style="margin-top: 8px; font-size: 0.85rem;">
-        👉 Kostenlosen Key holen: <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary); font-weight: 600;">Google AI Studio</a> ODER <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--primary); font-weight: 600;">OpenRouter</a>
-      </div>
-    </div>
-
-    <div class="hint-box" style="font-size: 0.85rem; line-height: 1.4; color: #1e40af;">
-      <b>📋 Vorgehensweise:</b> Kopiere den Text der Datenschutzerklärung oder AGB hier hinein.
-    </div>
-
-    <textarea id="policy-text" rows="6" placeholder="Text der Datenschutzerklärung / AGB hier hineinkopieren..."></textarea>
-    <button onclick="analyzeText()" id="btn-analyze">🔍 KI-Analyse starten</button>
   </div>
 
   <div id="mode-manual" style="display: none;">
     <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
     <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 12px;" id="manual-question">Lade Frage...</div>
     <div id="manual-options"></div>
-  </div>
-
-  <div id="loading" style="display:none; text-align:center; margin-top:15px; color:var(--primary); font-weight:600;">
-    ⏳ Analysiere Daten...
   </div>
 
   <div id="result" style="display: none;" class="result-box">
@@ -290,63 +245,31 @@
 </div>
 
 <script>
-  const presetsData = {
-    "canva": {
-      keywords: ["canva", "canva.com"],
-      status: "GREEN",
-      title: "Canva for Education",
-      summary: "DSGVO: Sehr gut (Bildungspaket mit AVV). OER: Eingeschränkt – Material kann exportiert werden (PDF/PNG), Weiterbearbeitung erfordert jedoch einen Canva-Account.",
-      oer_status: "🟡 OER: Bedingt geeignet (Proprietäres Format)",
-      evidence: [
-        "AVV im Schul-Account integriert.",
-        "Erstelltes Material darf frei genutzt werden, für Remixe/Bearbeitungen benötigen andere Personen jedoch ebenfalls Canva."
-      ]
-    },
-    "padlet": {
-      keywords: ["padlet", "padlet.com"],
-      status: "YELLOW",
-      title: "Padlet",
-      summary: "DSGVO: Bedingt (anonyme Nutzung über Link empfohlen). OER: Gut – Inhalte können als PDF/CSV exportiert und unter Creative Commons Lizenzen geteilt werden.",
-      oer_status: "🟢 OER: Gut geeignet (Guter Export)",
-      evidence: [
-        "Anonyme Teilnahme möglich.",
-        "Exporte als PDF/Bild zur Weitergabe als Lehrmaterial unterstützt."
-      ]
-    },
-    "taskcards": {
-      keywords: ["taskcards", "taskcards.de"],
-      status: "GREEN",
-      title: "TaskCards",
-      summary: "DSGVO: Hervorragend (Server in Deutschland). OER: Vorbildlich – Pinnwände können als JSON/PDF exportiert und problemlos mit anderen Lehrkräften geteilt werden.",
-      oer_status: "🟢 OER: Vorbildlich (Offene Schnittstellen)",
-      evidence: [
-        "Serverstandort Deutschland mit AVV.",
-        "JSON-Export erlaubt echtes Remixen und Wiederverwenden von Boards."
-      ]
-    },
-    "geogebra": {
-      keywords: ["geogebra", "geogebra.org"],
-      status: "GREEN",
-      title: "GeoGebra",
-      summary: "DSGVO: Unbedenklich. OER: Ausgezeichnet – GeoGebra-Materialien stehen standardmäßig unter freien Lizenzen (CC BY-NC-SA) zur Verfügung.",
-      oer_status: "🟢 OER: Voll OER-konform (Creative Commons)",
-      evidence: [
-        "Nutzung ohne Login möglich.",
-        "Integrierte Creative-Commons-Lizenzierung auf der Plattform."
-      ]
-    },
-    "chatgpt_free": {
-      keywords: ["chatgpt", "openai", "chatgpt.com"],
-      status: "RED",
-      title: "ChatGPT (Kostenloses Privatkonto)",
-      summary: "DSGVO: Nicht zulässig für Schülerkonten. OER: Unklar – Rechte an KI-Outputs schwanken je nach Rechtsprechung, Weitergabe der Texte ist rechtlich meist gemeinfrei.",
-      oer_status: "⚪ OER: Nicht bewertet / Gemeinfrei",
-      evidence: [
-        "Modelltraining mit Nutzereingaben aktiv.",
-        "KI-Texte unterliegen in der EU keinem klassischen Urheberrecht, sind somit frei nutzbar."
-      ]
+  let presetsData = {};
+
+  // Lädt die vorgeprüften Tools aus der externen tools.json
+  async function loadToolsDatabase() {
+    try {
+      const response = await fetch('tools.json');
+      if (!response.ok) throw new Error("tools.json konnte nicht geladen werden.");
+      presetsData = await response.json();
+      
+      const select = document.getElementById("preset-select");
+      select.innerHTML = '<option value="">-- Bitte Tool auswählen --</option>';
+      
+      for (const [key, tool] of Object.entries(presetsData)) {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = tool.title;
+        select.appendChild(opt);
+      }
+    } catch (err) {
+      console.error("Fehler beim Laden der Tool-Datenbank:", err);
+      document.getElementById("preset-select").innerHTML = '<option value="">Fehler beim Laden der Datenbank</option>';
     }
-  };
+  }
+
+  window.addEventListener('DOMContentLoaded', loadToolsDatabase);
 
   function checkToolUrl() {
     const rawInput = document.getElementById("tool-search-input").value.trim().toLowerCase();
@@ -370,22 +293,17 @@
       showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
     } else {
       statusMsg.className = "status-msg not-found";
-      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Starte die Prüfung per KI oder Fragebogen.`;
+      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Nutze den Fragebogen zur manuellen Selbstprüfung.`;
       statusMsg.style.display = "block";
-      switchMode('ki');
+      switchMode('manual');
     }
   }
 
-  document.getElementById("api-key").value = localStorage.getItem("checker_api_key") || "";
-  function saveKey() { localStorage.setItem("checker_api_key", document.getElementById("api-key").value); }
-
   function switchMode(mode) {
     document.getElementById("mode-preset").style.display = mode === 'preset' ? 'block' : 'none';
-    document.getElementById("mode-ki").style.display = mode === 'ki' ? 'block' : 'none';
     document.getElementById("mode-manual").style.display = mode === 'manual' ? 'block' : 'none';
     
     document.getElementById("tab-preset").className = `tab-btn ${mode === 'preset' ? 'active' : ''}`;
-    document.getElementById("tab-ki").className = `tab-btn ${mode === 'ki' ? 'active' : ''}`;
     document.getElementById("tab-manual").className = `tab-btn ${mode === 'manual' ? 'active' : ''}`;
     
     document.getElementById("result").style.display = "none";
@@ -493,131 +411,8 @@
     showResult(status, title, summary, [], oerStatus, "Manueller Fragenkatalog");
   }
 
-  function extractRelevantSections(fullText, maxChars = 12000) {
-    if (!fullText || fullText.length <= maxChars) return fullText;
-
-    const keywords = [
-      "daten", "dsgvo", "gdpr", "server", "usa", "drittland", "übermittlung", 
-      "speicher", "lösch", "auftragsverarbeitung", "avv", "schüler", "kind", 
-      "alter", "einwilligung", "modell", "training", "ki", "ai", "prompt", 
-      "urheberrecht", "lizenz", "cc-by", "creative commons", "nutzungsrecht", 
-      "eigentum", "export", "kommerziell", "drittanbieter"
-    ];
-
-    const paragraphs = fullText.split(/\n\s*\n/);
-    const relevantParagraphs = paragraphs.filter(para => {
-      const lowerPara = para.toLowerCase();
-      return keywords.some(kw => lowerPara.includes(kw));
-    });
-
-    let condensedText = relevantParagraphs.join("\n\n");
-
-    if (condensedText.length < 300) {
-      condensedText = fullText;
-    }
-
-    if (condensedText.length > maxChars) {
-      condensedText = condensedText.substring(0, maxChars) + "\n\n[... Text gekürzt ...]";
-    }
-
-    return condensedText;
-  }
-
-  async function analyzeText() {
-    const apiKey = document.getElementById("api-key").value.trim();
-    const selectedModel = document.getElementById("model-select").value;
-    const rawText = document.getElementById("policy-text").value.trim();
-
-    if (!apiKey) return alert("Bitte gib einen API-Schlüssel ein.");
-    if (!rawText) return alert("Bitte füge den Text ein.");
-
-    const text = extractRelevantSections(rawText);
-    document.getElementById("loading").style.display = "block";
-
-    const systemInstruction = `Du bist ein Rechtsexperte für Schuldatenschutz (DSGVO) und Open Educational Resources (OER) in Europa.
-Deine Aufgabe ist es, Datenschutzerklärungen und AGB von Online-Tools für den Schuleinsatz zu bewerten.`;
-
-    const prompt = `Analysiere folgenden Rechtstext für den Einsatz an Schulen:
----
-${text}
----
-
-WICHTIG: Antworte AUSSCHLIESSLICH im folgenden JSON-Format:
-{
-  "status": "GREEN",
-  "title": "Kurzes Fazit",
-  "summary": "Zusammenfassung für Lehrkräfte zur DSGVO und OER-Konformität.",
-  "evidence": ["Zitat 1", "Zitat 2"],
-  "oer_status": "🟢 OER-tauglich"
-}`;
-
-    const isGoogleKey = apiKey.startsWith("AIzaSy");
-
-    try {
-      let response, rawTextResult;
-
-      if (isGoogleKey) {
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemInstruction + "\n\n" + prompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
-          })
-        });
-
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error?.message || `Google API Fehler Status ${response.status}`);
-        }
-
-        const rawData = await response.json();
-        rawTextResult = rawData.candidates[0].content.parts[0].text;
-
-      } else {
-        response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "HTTP-Referer": window.location.href,
-            "X-Title": "DSGVO Tool Checker",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: selectedModel,
-            max_tokens: 1000,
-            messages: [
-              { role: "system", content: systemInstruction },
-              { role: "user", content: prompt }
-            ]
-          })
-        });
-
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error?.message || `OpenRouter Fehler Status ${response.status}`);
-        }
-
-        const rawData = await response.json();
-        rawTextResult = rawData.choices[0].message.content;
-      }
-
-      rawTextResult = rawTextResult.replace(/```json/gi, '').replace(/```/g, '').trim();
-      const res = JSON.parse(rawTextResult);
-
-      const sourceInfo = isGoogleKey ? "Google AI Studio API (Gemini 2.5 Flash)" : `OpenRouter (${selectedModel})`;
-      showResult(res.status, res.title, res.summary, res.evidence, res.oer_status, sourceInfo);
-
-    } catch (err) {
-      alert("Fehler bei der KI-Analyse: " + err.message);
-    } finally {
-      document.getElementById("loading").style.display = "none";
-    }
-  }
-
   function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo) {
     document.getElementById("mode-preset").style.display = "none";
-    document.getElementById("mode-ki").style.display = "none";
     document.getElementById("mode-manual").style.display = "none";
     
     const resDiv = document.getElementById("result");
@@ -655,7 +450,6 @@ WICHTIG: Antworte AUSSCHLIESSLICH im folgenden JSON-Format:
     document.getElementById("tool-search-input").value = "";
     document.getElementById("status-msg").style.display = "none";
     document.getElementById("preset-select").value = "";
-    document.getElementById("policy-text").value = "";
     switchMode('preset');
   }
 </script>
