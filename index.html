@@ -11,7 +11,7 @@
       --text-main: #0f172a;
       --text-muted: #64748b;
       
-      /* Akzentfarben aus dem Screenshot */
+      /* Neon-Akzente */
       --pink-accent: #ec4899;
       --pink-light: #fce7f3;
       --cyan-accent: #06b6d4;
@@ -20,7 +20,7 @@
       --purple-light: #f3e8ff;
       --blue-accent: #3b82f6;
 
-      /* Status-Ampeln in sanften Dashboard-Tönen */
+      /* Ampel-Farben */
       --green-bg: #ecfdf5;
       --green-border: #10b981;
       --green-text: #065f46;
@@ -37,7 +37,6 @@
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg-dark);
-      /* Dekorative Neon-Gradients im Hintergrund */
       background-image: 
         radial-gradient(circle at 15% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 40%),
         radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
@@ -52,8 +51,41 @@
       box-sizing: border-box;
     }
 
+    /* Schwebende Hintergrund-Icons */
+    .floating-bg-icons {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .floating-bg-icons .icon {
+      position: absolute;
+      font-size: 2.5rem;
+      opacity: 0.18;
+      filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.4));
+      animation: float 6s ease-in-out infinite alternate;
+    }
+
+    .icon-1 { top: 10%; left: 8%; animation-duration: 5s; }
+    .icon-2 { top: 15%; right: 10%; animation-duration: 7s; animation-delay: 1s; }
+    .icon-3 { bottom: 12%; left: 10%; animation-duration: 6s; animation-delay: 0.5s; }
+    .icon-4 { bottom: 18%; right: 12%; animation-duration: 8s; animation-delay: 1.5s; }
+    .icon-5 { top: 48%; left: 5%; animation-duration: 5.5s; animation-delay: 2s; }
+
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-22px) rotate(10deg); }
+    }
+
     /* Schwebende Hauptkarte */
     .card {
+      position: relative;
+      z-index: 1;
       background-color: var(--card-bg);
       max-width: 680px;
       width: 100%;
@@ -98,7 +130,6 @@
       margin: 4px 0 0 0;
     }
 
-    /* Suche & Eingabe im Cyan-Stil */
     .search-box {
       background: #f8fafc;
       border: 2px solid #e2e8f0;
@@ -118,7 +149,6 @@
       margin-top: 10px;
     }
 
-    /* Abgerundete Tabs im Pill-Design */
     .tab-nav {
       display: flex;
       gap: 10px;
@@ -190,6 +220,7 @@
       font-weight: 600;
       margin-top: 10px;
       transition: all 0.2s ease;
+      width: 100%;
     }
 
     .btn-option:hover {
@@ -198,7 +229,6 @@
       color: var(--purple-accent);
     }
 
-    /* Status-Meldungen */
     .status-msg {
       padding: 14px;
       border-radius: 12px;
@@ -209,7 +239,6 @@
     .status-msg.found { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
     .status-msg.not-found { background: var(--yellow-bg); color: var(--yellow-text); border: 1px solid var(--yellow-border); }
 
-    /* Ergebnis-Karten im Ampel-Stil */
     .result-box {
       padding: 24px;
       border-radius: 16px;
@@ -221,7 +250,6 @@
     .YELLOW { background: var(--yellow-bg); color: var(--yellow-text); border: 2px solid var(--yellow-border); }
     .RED { background: var(--red-bg); color: var(--red-text); border: 2px solid var(--red-border); }
 
-    /* Badges */
     .badge {
       display: inline-block;
       font-weight: 800;
@@ -245,298 +273,3 @@
     }
 
     .progress-bg {
-      height: 8px;
-      background: #e2e8f0;
-      border-radius: 4px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--pink-accent), var(--purple-accent));
-      width: 16%;
-      transition: width 0.3s ease;
-    }
-
-    .btn-print { background-color: #475569; color: white; margin-top: 20px; border-radius: 10px; border: none; padding: 12px; font-weight: 600; cursor: pointer; }
-    .btn-print:hover { background-color: #334155; }
-
-    @media print {
-      body { background: #fff; padding: 0; }
-      .card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      .search-box, .tab-nav, select, button, .subtitle, label, .progress-bg, .status-msg, .header-icon {
-        display: none !important;
-      }
-      .result-box { border-width: 2px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
-  </style>
-</head>
-<body>
-
-<div class="card">
-  <div class="header-container">
-    <div class="header-icon">📚</div>
-    <div>
-      <h2>DSGVO & OER Checker</h2>
-      <p class="subtitle">Schulwerkzeuge auf Datenschutz und offene Lizenzen prüfen</p>
-    </div>
-  </div>
-
-  <div class="search-box">
-    <label style="font-weight: 700; color: #1e293b; font-size: 0.9rem;">🔍 Tool oder Webadresse suchen:</label>
-    <div class="search-input-group">
-      <input type="text" id="tool-search-input" placeholder="z. B. padlet.com, Canva, TaskCards..." style="margin-top:0;">
-      <button class="btn-primary" onclick="checkToolUrl()" style="width: 130px; margin-top:0;">Prüfen</button>
-    </div>
-  </div>
-
-  <div id="status-msg" class="status-msg"></div>
-
-  <div class="tab-nav" id="tab-nav">
-    <button class="tab-btn active" id="tab-preset" onclick="switchMode('preset')">⚡ Vorgeprüfte Tools</button>
-    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Selbstprüfung</button>
-  </div>
-
-  <div id="mode-preset">
-    <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted);">Wähle eine geprüfte Anwendung aus der Datenbank:</label>
-    <select id="preset-select" onchange="loadPreset()">
-      <option value="">Lade Datenbank...</option>
-    </select>
-  </div>
-
-  <div id="mode-manual" style="display: none;">
-    <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
-    <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; color: #0f172a;" id="manual-question">Lade Frage...</div>
-    <div id="manual-options"></div>
-  </div>
-
-  <div id="result" style="display: none;" class="result-box">
-    <div id="result-badge" class="badge"></div><br>
-    <div id="result-oer-badge" class="oer-badge"></div>
-    
-    <h3 id="result-title" style="margin-top: 14px; font-size: 1.25rem;"></h3>
-    <div id="result-date" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;"></div>
-    
-    <p id="result-summary" style="text-align: left; margin-top: 14px; line-height: 1.6; font-size: 0.95rem;"></p>
-    
-    <div id="evidence-container" style="text-align: left; margin-top: 16px; display: none;">
-      <b style="font-size: 0.9rem;">Gefundene Nachweise & Richtlinien:</b>
-      <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 8px; line-height: 1.5;"></ul>
-    </div>
-
-    <button onclick="window.print()" class="btn-print" style="width: 100%;">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
-    <button onclick="resetAll()" style="background: transparent; border: 1px solid #cbd5e1; color: var(--text-muted); margin-top: 10px; width: 100%; padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer;">🔄 Neue Prüfung starten</button>
-  </div>
-</div>
-
-<script>
-  let presetsData = {};
-
-  async function loadToolsDatabase() {
-    try {
-      const response = await fetch('tools.json');
-      if (!response.ok) throw new Error("tools.json konnte nicht geladen werden.");
-      presetsData = await response.json();
-      
-      const select = document.getElementById("preset-select");
-      select.innerHTML = '<option value="">-- Bitte Tool auswählen --</option>';
-      
-      for (const [key, tool] of Object.entries(presetsData)) {
-        const opt = document.createElement("option");
-        opt.value = key;
-        opt.textContent = tool.title;
-        select.appendChild(opt);
-      }
-    } catch (err) {
-      console.error("Fehler beim Laden der Tool-Datenbank:", err);
-      document.getElementById("preset-select").innerHTML = '<option value="">Fehler beim Laden der Datenbank</option>';
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', loadToolsDatabase);
-
-  function checkToolUrl() {
-    const rawInput = document.getElementById("tool-search-input").value.trim().toLowerCase();
-    const statusMsg = document.getElementById("status-msg");
-
-    if (!rawInput) return alert("Bitte gib einen Link oder Namen ein.");
-
-    let foundKey = null;
-    for (const [key, tool] of Object.entries(presetsData)) {
-      if (tool.keywords.some(kw => rawInput.includes(kw))) {
-        foundKey = key;
-        break;
-      }
-    }
-
-    if (foundKey) {
-      const tool = presetsData[foundKey];
-      statusMsg.className = "status-msg found";
-      statusMsg.innerHTML = `✅ <b>Tool in Datenbank gefunden!</b>`;
-      statusMsg.style.display = "block";
-      showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
-    } else {
-      statusMsg.className = "status-msg not-found";
-      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Nutze die Selbstprüfung zur Bewertung.`;
-      statusMsg.style.display = "block";
-      switchMode('manual');
-    }
-  }
-
-  function switchMode(mode) {
-    document.getElementById("mode-preset").style.display = mode === 'preset' ? 'block' : 'none';
-    document.getElementById("mode-manual").style.display = mode === 'manual' ? 'block' : 'none';
-    
-    document.getElementById("tab-preset").className = `tab-btn ${mode === 'preset' ? 'active' : ''}`;
-    document.getElementById("tab-manual").className = `tab-btn ${mode === 'manual' ? 'active' : ''}`;
-    
-    document.getElementById("result").style.display = "none";
-    if (mode === 'manual') renderManualStep();
-  }
-
-  function loadPreset() {
-    const val = document.getElementById("preset-select").value;
-    if (!val) return;
-    const tool = presetsData[val];
-    showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
-  }
-
-  const manualQuestions = [
-    {
-      q: "1. Wer arbeitet direkt mit dem Tool?",
-      options: [
-        { text: "Nur die Lehrperson (Zentral zur Vorbereitung/Demonstration)", val: "teacher" },
-        { text: "Schüler*innen mit eigenen Konten (Login/Registrierung)", val: "student_login" },
-        { text: "Schüler*innen anonym (ohne Registrierung via Code/Link)", val: "student_anon" }
-      ]
-    },
-    {
-      q: "2. Werden personenbezogene Daten verarbeitet?",
-      options: [
-        { text: "Nein (Keine Klarnamen, E-Mails, Stimmen, Fotos oder Noten)", val: "no_pii" },
-        { text: "Ja (Eingabe oder Speicherung persönlicher Daten)", val: "has_pii" }
-      ]
-    },
-    {
-      q: "3. Wo liegt der Serverstandort?",
-      options: [
-        { text: "EU / EWR oder US-Anbieter mit DPF-Zertifizierung", val: "eu_dpf" },
-        { text: "USA ohne DPF / Drittland / Unbekannt", val: "third_country" }
-      ]
-    },
-    {
-      q: "4. Liegt ein Vertrag zur Auftragsverarbeitung (AVV) vor?",
-      options: [
-        { text: "Ja, AVV (Art. 28 DSGVO) ist vorhanden/abgeschlossen", val: "avv_yes" },
-        { text: "Nein / Nicht vorhanden / Unklar", val: "avv_no" }
-      ]
-    },
-    {
-      q: "5. Wie verhält sich das Tool beim KI-Modelltraining?",
-      options: [
-        { text: "Kein KI-Training mit Daten (Opt-Out aktiv / Schul-Lizenz)", val: "no_train" },
-        { text: "Eingaben/Prompts werden zum KI-Modelltraining genutzt", val: "train" }
-      ]
-    },
-    {
-      q: "6. (Optional) OER-Tauglichkeit & Output-Lizenzen:",
-      options: [
-        { text: "Export in offenen Formaten (PDF, SVG, ODT) & frei lizenzierbar (CC)", val: "oer_full" },
-        { text: "Export nur in geschlossenen Formaten (Bearbeitung braucht Account)", val: "oer_limited" },
-        { text: "AGB schränken Rechte am erzeugten Material ein", val: "oer_restricted" },
-        { text: "OER nicht prüfen / Übergehen", val: "oer_skip" }
-      ]
-    }
-  ];
-
-  let manualStep = 0;
-  let manualAnswers = [];
-
-  function renderManualStep() {
-    const q = manualQuestions[manualStep];
-    document.getElementById("manual-question").innerText = q.q;
-    document.getElementById("progress").style.width = `${((manualStep + 1) / manualQuestions.length) * 100}%`;
-    
-    const container = document.getElementById("manual-options");
-    container.innerHTML = "";
-    q.options.forEach(opt => {
-      const btn = document.createElement("button");
-      btn.className = "btn-option";
-      btn.innerText = opt.text;
-      btn.onclick = () => {
-        manualAnswers[manualStep] = opt.val;
-        manualStep++;
-        if (manualStep < manualQuestions.length) renderManualStep();
-        else evaluateManual();
-      };
-      container.appendChild(btn);
-    });
-  }
-
-  function evaluateManual() {
-    const [userGroup, pii, server, avv, train, oer] = manualAnswers;
-    let status = "GREEN", title = "Unbedenklich nutzbar", summary = "Das Tool erfüllt die wesentlichen DSGVO-Anforderungen für den Schuleinsatz.";
-
-    if ((userGroup === "student_login" && avv === "avv_no") || (pii === "has_pii" && server === "third_country") || train === "train") {
-      status = "RED";
-      title = "Nicht zulässig";
-      summary = "Der Einsatz verstößt gegen Datenschutzvorgaben (z. B. fehlender AVV bei Schülerkonten, Drittlandtransfer ohne Schutz oder KI-Training mit Daten).";
-    } else if (avv === "avv_no" || server === "third_country" || userGroup === "student_login") {
-      status = "YELLOW";
-      title = "Bedingt nutzbar";
-      summary = "Nutzung nur unter Auflagen: Anonyme Pseudonyme verwenden, Einwilligung einholen oder ausschließlich als Demonstrationsmedium nutzen.";
-    }
-
-    let oerStatus = "⚪ OER: Nicht geprüft";
-    if (oer === "oer_full") oerStatus = "🟢 OER: Hervorragend geeignet (Frei lizenzierbar & offen)";
-    if (oer === "oer_limited") oerStatus = "🟡 OER: Eingeschränkt (Proprietäres Format / Account-Pflicht)";
-    if (oer === "oer_restricted") oerStatus = "🔴 OER: Problematisch (Eingeschränkte Nutzungsrechte laut AGB)";
-
-    showResult(status, title, summary, [], oerStatus, "Manueller Fragenkatalog");
-  }
-
-  function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo) {
-    document.getElementById("mode-preset").style.display = "none";
-    document.getElementById("mode-manual").style.display = "none";
-    
-    const resDiv = document.getElementById("result");
-    resDiv.className = `result-box ${status}`;
-    resDiv.style.display = "block";
-
-    document.getElementById("result-badge").innerText = `DSGVO: ${status}`;
-    document.getElementById("result-oer-badge").innerText = oerBadgeText || "⚪ OER: Nicht bewertet";
-    document.getElementById("result-title").innerText = title;
-    document.getElementById("result-summary").innerText = summary;
-
-    const now = new Date();
-    const sourceStr = sourceInfo ? ` | Quelle: ${sourceInfo}` : '';
-    document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr${sourceStr}`;
-
-    const evContainer = document.getElementById("evidence-container");
-    const list = document.getElementById("result-evidence");
-    
-    if (evidence && evidence.length > 0) {
-      evContainer.style.display = "block";
-      list.innerHTML = "";
-      evidence.forEach(item => {
-        const li = document.createElement("li");
-        li.innerText = item;
-        list.appendChild(li);
-      });
-    } else {
-      evContainer.style.display = "none";
-    }
-  }
-
-  function resetAll() {
-    manualStep = 0;
-    manualAnswers = [];
-    document.getElementById("tool-search-input").value = "";
-    document.getElementById("status-msg").style.display = "none";
-    document.getElementById("preset-select").value = "";
-    switchMode('preset');
-  }
-</script>
-</body>
-</html>
