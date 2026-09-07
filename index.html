@@ -350,4 +350,613 @@
     </select>
   </div>
 
-  <div id="mode-manual" style="display: none
+  <div id="mode-manual" style="display: none;">
+    <div id="manual-step-0">
+      <label id="ui-name-label" style="font-weight: 700; display: block; margin-bottom: 6px;">Name des Tools:</label>
+      <input type="text" id="new-tool-name" placeholder="z. B. Anton App">
+      
+      <label id="ui-url-label" style="font-weight: 700; display: block; margin-top: 12px; margin-bottom: 6px;">Webadresse / Domain (optional):</label>
+      <input type="text" id="new-tool-url" placeholder="z. B. anton.app">
+      
+      <button class="btn-primary" id="ui-start-btn" onclick="startQuestionnaire()" style="margin-top: 16px; padding: 12px; width: 100%;">Weiter zum 10-Punkte-Fragebogen ➔</button>
+    </div>
+
+    <div id="manual-questions-container" style="display: none;">
+      <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
+      <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 10px; color: #0f172a;" id="manual-question">Lade Frage...</div>
+      <div id="manual-tip" class="tip-box" style="display: none;"></div>
+      <div id="manual-options"></div>
+    </div>
+  </div>
+
+  <div id="result" style="display: none;" class="result-box">
+    <div id="result-badge" class="badge"></div><br>
+    <div id="result-oer-badge" class="oer-badge"></div>
+    
+    <h3 id="result-title" style="margin-top: 14px; font-size: 1.25rem;"></h3>
+    <div id="result-date" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;"></div>
+    
+    <p id="result-summary" style="text-align: left; margin-top: 14px; line-height: 1.6; font-size: 0.95rem;"></p>
+    
+    <div id="evidence-container" style="text-align: left; margin-top: 16px; display: none;">
+      <b id="ui-evidence-title" style="font-size: 0.9rem;">Gefundene Nachweise & Richtlinien:</b>
+      <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 8px; line-height: 1.5;"></ul>
+    </div>
+
+    <div id="submission-section" class="submission-card" style="display: none;">
+      <h4 id="ui-sub-title" style="margin: 0 0 8px 0; color: #0f172a;">📩 Tool zur Aufnahme vorschlagen</h4>
+      <p id="ui-sub-desc" style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 12px 0;">
+        Hilf mit, die Datenbank zu erweitern. Reiche diese Bewertung ein, damit sie zentral überprüft und für alle Schulen freigeschaltet wird.
+      </p>
+      
+      <form id="suggest-form" onsubmit="submitToolSuggestion(event)">
+        <input type="hidden" id="form-payload" name="json_payload">
+        <label id="ui-note-label" style="font-size: 0.8rem; font-weight: 600; color: #475569;">Kurze Anmerkung (optional):</label>
+        <input type="text" id="form-note" name="user_note" placeholder="z. B. Getestet am Sprengel Bozen..." style="margin-bottom: 8px;">
+        <button type="submit" id="ui-submit-btn" class="btn-submit">🚀 Bewertung anonym einreichen</button>
+      </form>
+      <div id="form-status" style="margin-top: 8px; font-size: 0.85rem; font-weight: 600; display: none;"></div>
+    </div>
+
+    <button onclick="window.print()" id="ui-print-btn" class="btn-print">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
+    <button onclick="resetAll()" id="ui-reset-btn" style="background: transparent; border: 1px solid #cbd5e1; color: var(--text-muted); margin-top: 10px; width: 100%; padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer;">🔄 Neue Prüfung starten</button>
+  </div>
+</div>
+
+<script>
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mqpkyabj";
+
+  let currentLang = 'de';
+  let presetsData = {};
+  let currentEvalToolName = "";
+  let currentEvalToolUrl = "";
+  let generatedJsonCode = "";
+
+  // Wörterbuch für die Benutzeroberfläche
+  const uiTexts = {
+    de: {
+      title: "DSGVO & OER Tool-Checker für Südtiroler Schulen",
+      subtitle: "Südtiroler Schulprüfnetzwerk nach AgID/ACN- & Garante-Vorgaben",
+      searchLabel: "🔍 Tool oder Webadresse suchen:",
+      searchBtn: "Prüfen",
+      tabPreset: "⚡ Vorgeprüfte Tools",
+      tabManual: "📋 Selbstprüfung (Südtirol)",
+      presetLabel: "Wähle eine geprüfte Anwendung aus der Datenbank:",
+      defaultSelect: "-- Bitte Tool auswählen --",
+      nameLabel: "Name des Tools:",
+      urlLabel: "Webadresse / Domain (optional):",
+      startBtn: "Weiter zum 10-Punkte-Fragebogen ➔",
+      evidenceTitle: "Gefundene Nachweise & Richtlinien:",
+      subTitle: "📩 Tool zur Aufnahme vorschlagen",
+      subDesc: "Hilf mit, die Datenbank zu erweitern. Reiche diese Bewertung ein, damit sie zentral überprüft und für alle Schulen freigeschaltet wird.",
+      noteLabel: "Kurze Anmerkung (optional):",
+      notePlaceholder: "z. B. Getestet am Schulsprengel...",
+      submitBtn: "🚀 Bewertung anonym einreichen",
+      printBtn: "🖨️ Prüfprotokoll drucken / als PDF speichern",
+      resetBtn: "🔄 Neue Prüfung starten",
+      toolFoundMsg: "✅ <b>Tool in Datenbank gefunden!</b>",
+      toolNotFoundMsg: "❓ <b>Unbekanntes Tool.</b> Starte die Selbstprüfung zur Erfassung.",
+      dbError: "Fehler beim Laden der Datenbank",
+      alertNoInput: "Bitte gib einen Link oder Namen ein.",
+      alertNoName: "Bitte gib den Namen des Tools ein.",
+      existsAlert: (title) => `Das Tool "${title}" existiert bereits in der Datenbank!`,
+      submitting: "⏳ Übermittle Vorschlag...",
+      successMsg: "✅ Vorschlag erfolgreich eingereicht! Vielen Dank.",
+      errorMsg: "❌ Fehler bei der Übermittlung. Bitte versuche es später erneut."
+    },
+    it: {
+      title: "Verificatore Privacy (GDPR) & OER per le Scuole in Alto Adige",
+      subtitle: "Network di controllo scolastico secondo le direttive AgID/ACN e Garante Privacy",
+      searchLabel: "🔍 Cerca strumento o indirizzo web:",
+      searchBtn: "Verifica",
+      tabPreset: "⚡ Strumenti pre-verificati",
+      tabManual: "📋 Autovalutazione (Alto Adige)",
+      presetLabel: "Seleziona un'applicazione verificata dal database:",
+      defaultSelect: "-- Seleziona uno strumento --",
+      nameLabel: "Nome dello strumento:",
+      urlLabel: "Indirizzo web / Dominio (opzionale):",
+      startBtn: "Procedi al questionario di 10 punti ➔",
+      evidenceTitle: "Riferimenti e linee guida trovati:",
+      subTitle: "📩 Proponi strumento per l'inclusione",
+      subDesc: "Aiuta ad ampliare il database. Invia questa valutazione affinché venga verificata e abilitata per tutte le scuole.",
+      noteLabel: "Breve nota (opzionale):",
+      notePlaceholder: "es. Testato presso l'Istituto...",
+      submitBtn: "🚀 Invia valutazione in modo anonimo",
+      printBtn: "🖨️ Stampa verbale di verifica / Salva come PDF",
+      resetBtn: "🔄 Avvia nuova verifica",
+      toolFoundMsg: "✅ <b>Strumento trovato nel database!</b>",
+      toolNotFoundMsg: "❓ <b>Strumento sconosciuto.</b> Avvia l'autovalutazione per registrarlo.",
+      dbError: "Errore durante il caricamento del database",
+      alertNoInput: "Inserisci un link o un nome.",
+      alertNoName: "Inserisci il nome dello strumento.",
+      existsAlert: (title) => `Lo strumento "${title}" esiste già nel database!`,
+      submitting: "⏳ Invio della proposta in corso...",
+      successMsg: "✅ Proposta inviata con successo! Grazie.",
+      errorMsg: "❌ Errore durante l'invio. Riprova più tardi."
+    }
+  };
+
+  // Die 10 Südtiroler Kriterien (Zweisprachig)
+  const manualQuestions = {
+    de: [
+      {
+        q: "1. Serverstandort & ACN-Cloud-Qualifizierung (Pubblica Amministrazione)",
+        tip: "💡 <b>Such-Tipp:</b> Öffne die Seite der Datenschutzbestimmungen (<b>Privacy Policy</b>). Nutze <b>Strg + F</b> (Mac: <b>Cmd + F</b>) und suche nach Begriffen wie <i>Hosting</i>, <i>Server location</i>, <i>Datacenter</i>, <i>AWS</i> oder <i>EU Central</i>. <b>Hinweis:</b> Es reicht, wenn einer dieser Server-Hinweise auf einen EU-Standort oder das DPF hinweist.",
+        options: [
+          { text: "Server in EU/EWR (oder US-DPF) & Dienst entspricht ACN/AgID-Cloud-Richtlinien", val: "ok" },
+          { text: "Drittlandserver ohne DPF oder fehlende ACN-Cloud-Qualifizierung", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "2. Auftragsverarbeitung (AVV) & Formelle Nomina durch Schulleitung",
+        tip: "💡 <b>Such-Tipp:</b> Suche in den AGB (<b>Terms of Service</b> / <b>ToS</b>) mit <b>Strg + F</b> (Mac: <b>Cmd + F</b>) nach <i>Data Processing Agreement</i>, <i>DPA</i>, <i>Processor</i> oder <i>Nomina a Responsabile</i>. <b>Hinweis:</b> Es reicht, wenn auch nur eine dieser Passagen oder ein Hinweis auf ein DPA existiert.",
+        options: [
+          { text: "AVV (Art. 28) vorhanden; Nomina a Responsabile del Trattamento durch Schulleitung vorgesehen", val: "ok" },
+          { text: "Kein AVV vorhanden oder keine formelle Ernennung möglich", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "3. Verschlüsselung & AgID-Sicherheitsstandards",
+        tip: "💡 <b>Such-Tipp:</b> Prüfe die Webadresse (muss mit <b>https://</b> beginnen). Suche im Trust Center oder in den Security-FAQs mit <b>Strg + F</b> nach <i>Encryption at rest</i> oder <i>TLS</i>. <b>Hinweis:</b> Das Vorhandensein von https:// erfüllt bereits den Mindeststandard für den Transport.",
+        options: [
+          { text: "Transportverschlüsselung (TLS 1.3) & Speicherverschlüsselung (at rest) nach Art. 32 DSGVO aktiv", val: "ok" },
+          { text: "Verschlüsselung unvollständig oder Sicherheitsstandards unklar", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "4. Rollenkonzept & Zugriffsrechte (Autorizzati al trattamento)",
+        tip: "💡 <b>Such-Tipp:</b> Suche in der Doku nach <i>Roles</i>, <i>Permissions</i> oder <i>Teacher / Student access</i>. <b>Hinweis:</b> Es reicht, wenn es getrennte Lehrer- und Schülerkonten gibt.",
+        options: [
+          { text: "Strikte Rollentrennung (Schulleitung, Lehrpersonen, Eltern, Schüler) gemäß Art. 2-quaterdecies", val: "ok" },
+          { text: "Keine Differenzierung der Zugriffsrechte vorhanden", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "5. Rechtsgrundlage für den Schulbetrieb",
+        tip: "💡 <b>Such-Tipp:</b> Prüfe, ob das Tool im regulären Pflichtunterricht eingesetzt wird (öffentliches Interesse / <i>Public Interest</i>) oder ob Registrierungen auf privater Freiwilligkeit beruhen.",
+        options: [
+          { text: "Nutzung basiert auf Aufgabe im öffentlichen Interesse (compito di interesse pubblico, Art. 6.1.e)", val: "ok" },
+          { text: "Fälschlicherweise pauschale Eltern-Einwilligung für Pflichtaufgaben verlangt", val: "warn" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "6. Löschkonzept vs. Archivordnung (Piano di conservazione e scarto)",
+        tip: "💡 <b>Such-Tipp:</b> Nutze <b>Strg + F</b> (Mac: <b>Cmd + F</b>) in der Privacy Policy und suche nach <i>Data retention</i> oder <i>Deletion</i>. <b>Hinweis:</b> Es reicht, wenn ein manuelles Löschen von Schülerdaten in den Einstellungen möglich ist.",
+        options: [
+          { text: "Löschfristen definiert & mit dem Schularchivplan (Piano di conservazione) abgestimmt", val: "ok" },
+          { text: "Unbefristete Speicherung oder Konflikt mit öffentlichen Aufbewahrungsfristen", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "7. Verbot von Profiling & Kommerz (Garante Privacy - „La scuola a prova di privacy“)",
+        tip: "💡 <b>Such-Tipp:</b> Suche in den AGB (<b>Terms of Service</b>) mit <b>Strg + F</b> (Mac: <b>Cmd + F</b>) nach <i>Advertising</i>, <i>Tracking</i>, <i>Third-party</i> oder <i>AI training</i>. <b>Hinweis:</b> Reicht es dir, dass eine dieser Klauseln (z. B. kein Werbe-Tracking) explizit verneint wird? Das ist bereits ein wichtiger Pluspunkt.",
+        options: [
+          { text: "Kein Werbetracking, kein Profiling Minderjähriger, keine Datenweitergabe an Dritte", val: "ok" },
+          { text: "Kommerzielle Datenverwertung, KI-Training mit Schülerdaten oder Tracking aktiv", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "8. DPO-Abstimmung & Eintrag im Verzeichnis (Registro dei trattamenti)",
+        tip: "💡 <b>Such-Tipp:</b> Dies ist ein interner Verwaltungsschritt an deiner Schule: Kläre dies mit eurer Schulleitung oder dem Datenschutzbeauftragten (<b>DPO / RPD</b>).",
+        options: [
+          { text: "Mit Datenschutzbeauftragtem (DPO/RPD) abgestimmt & im Verzeichnis der Schule (Art. 30 DSGVO) erfasst", val: "ok" },
+          { text: "Nicht im Registro dei trattamenti erfasst", val: "warn" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "9. Privacy by Design & AgID-Softwarerichtlinien",
+        tip: "💡 <b>Such-Tipp:</b> Achte darauf, ob das Tool datenschutzfreundliche Standardeinstellungen (<i>Privacy by default</i>) nutzt oder ob z. B. Analysetools beim Start ungefragt aktiv sind.",
+        options: [
+          { text: "Datenschutzfreundliche Voreinstellungen aktiv (Art. 25 DSGVO) gemäß Beschaffungsrichtlinien", val: "ok" },
+          { text: "Datenschutzunfreundliche Standardeinstellungen", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "10. Transparente Information (Informativa ex Art. 13/14)",
+        tip: "💡 <b>Such-Tipp:</b> Prüfe, ob der Anbieter eine für Bildungseinrichtungen gedachte Informationsseite bereitstellt.",
+        options: [
+          { text: "Information für Eltern/Schüler vorab veröffentlicht (z. B. via Digitales Register / Schulhomepage)", val: "ok" },
+          { text: "Keine transparente Informativa bereitgestellt", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      }
+    ],
+    it: [
+      {
+        q: "1. Sede del server & Qualificazione Cloud ACN (Pubblica Amministrazione)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Apri l'informativa sulla privacy (<b>Privacy Policy</b>). Usa <b>Ctrl + F</b> (Mac: <b>Cmd + F</b>) per aprire la barra di ricerca e cerca termini come <i>Hosting</i>, <i>Server location</i>, <i>Datacenter</i>, <i>AWS</i> o <i>EU Central</i>. <b>Nota:</b> È sufficiente che uno di questi indizi confermi una sede nell'UE o il DPF.",
+        options: [
+          { text: "Server in UE/SEE (o US-DPF) & Servizio conforme alle linee guida Cloud ACN/AgID", val: "ok" },
+          { text: "Server in paesi terzi senza DPF o mancata qualificazione Cloud ACN", val: "fail" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "2. Trattamento dei dati (AVV) & Nomina formale da parte del Dirigente",
+        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nei Termini di servizio (<b>Terms of Service</b> / <b>ToS</b>) tramite <b>Ctrl + F</b> (Mac: <b>Cmd + F</b>) termini come <i>Data Processing Agreement</i>, <i>DPA</i>, <i>Processor</i> o <i>Nomina a Responsabile</i>. <b>Nota:</b> È sufficiente la presenza di un riferimento al DPA.",
+        options: [
+          { text: "DPA (Art. 28 GDPR) disponibile; Nomina a Responsabile del Trattamento prevista dal Dirigente Scolastico", val: "ok" },
+          { text: "Nessun DPA disponibile o nomina formale non prevista", val: "fail" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "3. Crittografia & Standard di sicurezza AgID",
+        tip: "💡 <b>Consiglio di ricerca:</b> Verifica che l'indirizzo web inizi con <b>https://</b>. Cerca nel Trust Center o nelle FAQ di sicurezza tramite <b>Ctrl + F</b> termini come <i>Encryption at rest</i> o <i>TLS</i>. <b>Nota:</b> La presenza di https:// soddisfa già il requisito minimo di trasporto.",
+        options: [
+          { text: "Crittografia di trasporto (TLS 1.3) & crittografia dei dati a riposo (at rest) attive (Art. 32 GDPR)", val: "ok" },
+          { text: "Crittografia incompleta o standard di sicurezza non chiari", val: "fail" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "4. Gestione dei ruoli & permessi (Autorizzati al trattamento)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nella documentazione termini come <i>Roles</i>, <i>Permissions</i> o <i>Teacher / Student access</i>. <b>Nota:</b> È sufficiente la presenza di account distinti per docenti e studenti.",
+        options: [
+          { text: "Separazione rigorosa dei ruoli (Dirigente, Docenti, Genitori, Studenti) ai sensi dell'art. 2-quaterdecies", val: "ok" },
+          { text: "Nessuna differenziazione dei diritti di accesso disponibile", val: "fail" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "5. Base giuridica per l'attività scolastica",
+        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se lo strumento viene utilizzato nell'ambito della didattica obbligatoria (interesse pubblico / <i>Public Interest</i>) o se la registrazione è facoltativa.",
+        options: [
+          { text: "Utilizzo basato su un compito di interesse pubblico (Art. 6.1.e GDPR / Art. 2-ter)", val: "ok" },
+          { text: "Richiesto erroneamente il consenso generale dei genitori per attività obbligatorie", val: "warn" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "6. Politica di cancellazione vs. Piano di conservazione e scarto",
+        tip: "💡 <b>Consiglio di ricerca:</b> Usa <b>Ctrl + F</b> (Mac: <b>Cmd + F</b>) nella Privacy Policy e cerca <i>Data retention</i> o <i>Deletion</i>. <b>Nota:</b> È sufficiente che sia possibile la cancellazione manuale dei dati degli studenti.",
+        options: [
+          { text: "Termini di conservazione definiti & compatibili con il piano di conservazione scolastico", val: "ok" },
+          { text: "Conservazione a tempo indeterminato o conflitto con i termini pubblici", val: "fail" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "7. Divieto di profilazione & fini commerciali (Garante Privacy - „La scuola a prova di privacy“)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nei Termini di servizio (<b>Terms of Service</b>) tramite <b>Ctrl + F</b> parole come <i>Advertising</i>, <i>Tracking</i>, <i>Third-party</i> o <i>AI training</i>. <b>Nota:</b> Se una di queste pratiche commerciali viene esplicitamente esclusa, è un ottimo indicatore.",
+        options: [
+          { text: "Nessun tracciamento pubblicitario, nessuna profilazione di minori, nessuna cessione a terzi", val: "ok" },
+          { text: "Sfruttamento commerciale, addestramento IA con dati degli studenti o tracciamento attivi", val: "fail" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "8. Consultazione RPD/DPO & Registro dei trattamenti (Art. 30 GDPR)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Questo è un passaggio amministrativo interno: da verificare con la direzione scolastica o con il Responsabile della Protezione dei Dati (<b>RPD / DPO</b>).",
+        options: [
+          { text: "Concordato con il Responsabile della Protezione dei Dati (RPD/DPO) & inserito nel Registro dei trattamenti", val: "ok" },
+          { text: "Non inserito nel Registro dei trattamenti", val: "warn" },
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
+        ]
+      },
+      {
+        q: "9. Privacy by Design & Linee guida software AgID",
+        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se lo strumento adotta impostazioni predefinite a tutela della privacy (<i>Privacy by default</i>) o se strumenti di analisi sono attivi senza consenso.",
+        options: [
+          { text: "Impostazioni predefinite a tutela della privacy attive (Art. 25 GDPR) secondo le linee guida AgID", val: "ok" },
+          { text: "Impostazioni standard non rispettose della privacy", val: "fail" },
+          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
+        ]
+      },
+      {
+        q: "10. Informativa trasparente (Informativa ex art. 13/14 GDPR)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se il fornitore mette a disposizione un'informativa dedicata alle istituzioni scolastiche.",
+        options: [
+          { text: "Informativa per genitori/studenti pubblicata preventivamente (es. Registro Elettronico / Sito web)", val: "ok" },
+          { text: "Nessuna informativa trasparente fornita", val: "fail" },
+          { text: "⚪ Non verificabile / Keine Angabe (incerto)", val: "warn" }
+        ]
+      }
+    ]
+  };
+
+  let manualStep = 0;
+  let manualAnswers = [];
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    document.getElementById('btn-de').className = `lang-btn ${lang === 'de' ? 'active' : ''}`;
+    document.getElementById('btn-it').className = `lang-btn ${lang === 'it' ? 'active' : ''}`;
+    
+    // UI Texte aktualisieren
+    const t = uiTexts[lang];
+    document.getElementById('page-title').innerText = t.title;
+    document.getElementById('ui-main-title').innerText = "DSGVO & OER Checker";
+    document.getElementById('ui-subtitle').innerText = t.subtitle;
+    document.getElementById('ui-search-label').innerText = t.searchLabel;
+    document.getElementById('ui-search-btn').innerText = t.searchBtn;
+    document.getElementById('tab-preset').innerText = t.tabPreset;
+    document.getElementById('tab-manual').innerText = t.tabManual;
+    document.getElementById('ui-preset-label').innerText = t.presetLabel;
+    document.getElementById('ui-name-label').innerText = t.nameLabel;
+    document.getElementById('ui-url-label').innerText = t.urlLabel;
+    document.getElementById('ui-start-btn').innerText = t.startBtn;
+    document.getElementById('ui-evidence-title').innerText = t.evidenceTitle;
+    document.getElementById('ui-sub-title').innerText = t.subTitle;
+    document.getElementById('ui-sub-desc').innerText = t.subDesc;
+    document.getElementById('ui-note-label').innerText = t.noteLabel;
+    document.getElementById('form-note').placeholder = t.notePlaceholder;
+    document.getElementById('ui-submit-btn').innerText = t.submitBtn;
+    document.getElementById('ui-print-btn').innerText = t.printBtn;
+    document.getElementById('ui-reset-btn').innerText = t.resetBtn;
+
+    // Dropdown aktualisieren
+    loadToolsDatabase();
+
+    // Falls gerade im Fragebogen, Frage aktualisieren
+    if (document.getElementById('manual-questions-container').style.display === 'block') {
+      renderManualStep();
+    }
+  }
+
+  async function loadToolsDatabase() {
+    try {
+      const response = await fetch('tools.json');
+      if (!response.ok) throw new Error("tools.json konnte nicht geladen werden.");
+      presetsData = await response.json();
+      
+      const select = document.getElementById("preset-select");
+      select.innerHTML = `<option value="">${uiTexts[currentLang].defaultSelect}</option>`;
+      
+      for (const [key, tool] of Object.entries(presetsData)) {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = tool.title;
+        select.appendChild(opt);
+      }
+    } catch (err) {
+      console.error("Fehler beim Laden der Tool-Datenbank:", err);
+      document.getElementById("preset-select").innerHTML = `<option value="">${uiTexts[currentLang].dbError}</option>`;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => loadToolsDatabase());
+
+  function checkToolUrl() {
+    const rawInput = document.getElementById("tool-search-input").value.trim().toLowerCase();
+    const statusMsg = document.getElementById("status-msg");
+    const t = uiTexts[currentLang];
+
+    if (!rawInput) return alert(t.alertNoInput);
+
+    const cleanSearch = rawInput.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+    let foundKey = null;
+    for (const [key, tool] of Object.entries(presetsData)) {
+      if (tool.keywords.some(kw => cleanSearch.includes(kw))) {
+        foundKey = key;
+        break;
+      }
+    }
+
+    if (foundKey) {
+      const tool = presetsData[foundKey];
+      statusMsg.className = "status-msg found";
+      statusMsg.innerHTML = t.toolFoundMsg;
+      statusMsg.style.display = "block";
+      showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, currentLang === 'de' ? "Vorgeprüfte Datenbank" : "Database pre-verificato", false);
+    } else {
+      statusMsg.className = "status-msg not-found";
+      statusMsg.innerHTML = t.toolNotFoundMsg;
+      statusMsg.style.display = "block";
+      document.getElementById("new-tool-name").value = rawInput;
+      switchMode('manual');
+    }
+  }
+
+  function switchMode(mode) {
+    document.getElementById("mode-preset").style.display = mode === 'preset' ? 'block' : 'none';
+    document.getElementById("mode-manual").style.display = mode === 'manual' ? 'block' : 'none';
+    
+    document.getElementById("tab-preset").className = `tab-btn ${mode === 'preset' ? 'active' : ''}`;
+    document.getElementById("tab-manual").className = `tab-btn ${mode === 'manual' ? 'active' : ''}`;
+    
+    document.getElementById("result").style.display = "none";
+  }
+
+  function startQuestionnaire() {
+    const name = document.getElementById("new-tool-name").value.trim();
+    const t = uiTexts[currentLang];
+    if (!name) return alert(t.alertNoName);
+    
+    const cleanName = name.toLowerCase();
+    for (const [key, tool] of Object.entries(presetsData)) {
+      if (tool.keywords.some(kw => cleanName.includes(kw))) {
+        alert(t.existsAlert(tool.title));
+        showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, currentLang === 'de' ? "Vorgeprüfte Datenbank" : "Database pre-verificato", false);
+        return;
+      }
+    }
+
+    currentEvalToolName = name;
+    currentEvalToolUrl = document.getElementById("new-tool-url").value.trim();
+    
+    document.getElementById("manual-step-0").style.display = "none";
+    document.getElementById("manual-questions-container").style.display = "block";
+    
+    manualStep = 0;
+    manualAnswers = [];
+    renderManualStep();
+  }
+
+  function loadPreset() {
+    const val = document.getElementById("preset-select").value;
+    if (!val) return;
+    const tool = presetsData[val];
+    showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, currentLang === 'de' ? "Vorgeprüfte Datenbank" : "Database pre-verificato", false);
+  }
+
+  function renderManualStep() {
+    const qList = manualQuestions[currentLang];
+    const q = qList[manualStep];
+    document.getElementById("manual-question").innerText = q.q;
+    
+    const tipBox = document.getElementById("manual-tip");
+    if (q.tip) {
+      tipBox.innerHTML = q.tip;
+      tipBox.style.display = "block";
+    } else {
+      tipBox.style.display = "none";
+    }
+
+    document.getElementById("progress").style.width = `${((manualStep + 1) / qList.length) * 100}%`;
+    
+    const container = document.getElementById("manual-options");
+    container.innerHTML = "";
+    q.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "btn-option";
+      btn.innerText = opt.text;
+      btn.onclick = () => {
+        manualAnswers[manualStep] = opt.val;
+        manualStep++;
+        if (manualStep < qList.length) renderManualStep();
+        else evaluateManual();
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  function evaluateManual() {
+    const fails = manualAnswers.filter(a => a === "fail").length;
+    const warns = manualAnswers.filter(a => a === "warn").length;
+
+    let status = "GREEN";
+    let title = `${currentEvalToolName}: ${currentLang === 'de' ? 'Südtirol-Konform' : 'Conforme Alto Adige'}`;
+    let summary = currentLang === 'de' ? "Das Tool erfüllt alle wesentlichen Pflichtkriterien der Südtiroler DSGVO-Checkliste für den Schulbetrieb." : "Lo strumento soddisfa tutti i criteri essenziali della checklist GDPR per le scuole in Alto Adige.";
+
+    if (fails > 0) {
+      status = "RED";
+      title = `${currentEvalToolName}: ${currentLang === 'de' ? 'Nicht zulässig' : 'Non consentito'}`;
+      summary = currentLang === 'de' ? `Das Tool verletzt ${fails} gesetzliches Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben.` : `Lo strumento viola ${fails} criterio/i obbligatorio/i delle normative ACN/AgID e GDPR.`;
+    } else if (warns > 0) {
+      status = "YELLOW";
+      title = `${currentEvalToolName}: ${currentLang === 'de' ? 'Bedingt nutzbar (Unklare Punkte)' : 'Utilizzabile con riserva (Punti incerti)'}`;
+      summary = currentLang === 'de' ? `Ein oder mehrere Kriterien wurden mit "Nicht überprüfbar" bewertet. Eine Prüfung durch die Schulleitung/den DPO wird empfohlen.` : `Uno o più criteri sono stati valutati come "Non verificabile". Si consiglia un controllo da parte della dirigenza/RPD.`;
+    }
+
+    const toolKey = currentEvalToolName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const kw1 = currentEvalToolName.toLowerCase();
+    const kw2 = currentEvalToolUrl.toLowerCase().replace(/^https?:\/\//, '');
+    const keywordsArr = [kw1];
+    if (kw2 && kw2 !== kw1) keywordsArr.push(kw2);
+
+    const jsonObj = {};
+    jsonObj[toolKey] = {
+      keywords: keywordsArr,
+      status: status,
+      title: currentEvalToolName,
+      summary: summary,
+      oer_status: "⚪ OER: Nicht bewertet",
+      evidence: [
+        currentLang === 'de' ? "Selbstprüfung durch Lehrkraft nach Südtiroler 10-Punkte-Checkliste." : "Autovalutazione da parte del docente secondo la checklist di 10 punti dell'Alto Adige."
+      ]
+    };
+
+    generatedJsonCode = JSON.stringify(jsonObj, null, 2);
+
+    showResult(status, title, summary, [], currentLang === 'de' ? "⚪ Selbstprüfung Südtirol" : "⚪ Autovalutazione Alto Adige", currentLang === 'de' ? "10-Punkte-Checkliste Südtirol" : "Checklist 10 punti Alto Adige", true);
+  }
+
+  function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo, allowSubmission = false) {
+    document.getElementById("mode-preset").style.display = "none";
+    document.getElementById("mode-manual").style.display = "none";
+    
+    const resDiv = document.getElementById("result");
+    resDiv.className = `result-box ${status}`;
+    resDiv.style.display = "block";
+
+    document.getElementById("result-badge").innerText = `GDPR/DSGVO: ${status}`;
+    document.getElementById("result-oer-badge").innerText = oerBadgeText || "⚪ OER: Non valutato";
+    document.getElementById("result-title").innerText = title;
+    document.getElementById("result-summary").innerText = summary;
+
+    const now = new Date();
+    const sourceStr = sourceInfo ? ` | ${currentLang === 'de' ? 'Quelle' : 'Fonte'}: ${sourceInfo}` : '';
+    document.getElementById("result-date").innerText = `${currentLang === 'de' ? 'Prüfdatum' : 'Data di verifica'}: ${now.toLocaleDateString(currentLang === 'de' ? 'de-DE' : 'it-IT')} ${currentLang === 'de' ? 'um' : 'alle'} ${now.toLocaleTimeString(currentLang === 'de' ? 'de-DE' : 'it-IT', { hour: '2-digit', minute: '2-digit' })}${sourceStr}`;
+
+    const evContainer = document.getElementById("evidence-container");
+    const list = document.getElementById("result-evidence");
+    
+    if (evidence && evidence.length > 0) {
+      evContainer.style.display = "block";
+      list.innerHTML = "";
+      evidence.forEach(item => {
+        const li = document.createElement("li");
+        li.innerText = item;
+        list.appendChild(li);
+      });
+    } else {
+      evContainer.style.display = "none";
+    }
+
+    const subSection = document.getElementById("submission-section");
+    if (allowSubmission) {
+      subSection.style.display = "block";
+      document.getElementById("form-payload").value = generatedJsonCode;
+      document.getElementById("form-status").style.display = "none";
+    } else {
+      subSection.style.display = "none";
+    }
+  }
+
+  async function submitToolSuggestion(event) {
+    event.preventDefault();
+    const statusDiv = document.getElementById("form-status");
+    statusDiv.style.display = "block";
+    statusDiv.style.color = "#0284c7";
+    statusDiv.innerText = uiTexts[currentLang].submitting;
+
+    try {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          tool_name: currentEvalToolName,
+          json_snippet: document.getElementById("form-payload").value,
+          user_note: document.getElementById("form-note").value
+        })
+      });
+
+      if (response.ok) {
+        statusDiv.style.color = "#166534";
+        statusDiv.innerText = uiTexts[currentLang].successMsg;
+        document.getElementById("suggest-form").reset();
+      } else {
+        throw new Error("Übermittlung fehlgeschlagen.");
+      }
+    } catch (err) {
+      statusDiv.style.color = "#991b1b";
+      statusDiv.innerText = uiTexts[currentLang].errorMsg;
+    }
+  }
+
+  function resetAll() {
+    manualStep = 0;
+    manualAnswers = [];
+    document.getElementById("tool-search-input").value = "";
+    document.getElementById("status-msg").style.display = "none";
+    document.getElementById("preset-select").value = "";
+    document.getElementById("new-tool-name").value = "";
+    document.getElementById("new-tool-url").value = "";
+    document.getElementById("manual-step-0").style.display = "block";
+    document.getElementById("manual-questions-container").style.display = "none";
+    switchMode('preset');
+  }
+</script>
+</body>
+</html>
