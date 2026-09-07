@@ -118,7 +118,6 @@
       flex-shrink: 0;
     }
 
-    /* Sprachumschalter */
     .lang-switcher {
       display: flex;
       gap: 4px;
@@ -290,7 +289,7 @@
     .oer-badge { display: inline-block; font-weight: 700; font-size: 0.85rem; background: var(--purple-light); color: var(--purple-accent); border: 1px solid #d8b4fe; padding: 6px 14px; border-radius: 20px; margin-top: 8px; }
 
     .progress-bg { height: 8px; background: #e2e8f0; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--pink-accent), var(--purple-accent)); width: 10%; transition: width 0.3s ease; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--pink-accent), var(--purple-accent)); width: 20%; transition: width 0.3s ease; }
 
     .btn-print { background-color: #475569; color: white; margin-top: 20px; border-radius: 10px; border: none; padding: 12px; font-weight: 600; cursor: pointer; width: 100%; }
     .submission-card { margin-top: 20px; padding: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; text-align: left; }
@@ -319,7 +318,7 @@
       <div class="header-icon">🛡️</div>
       <div>
         <h2 id="ui-main-title">DSGVO & OER Checker</h2>
-        <p class="subtitle" id="ui-subtitle">Südtiroler Schulprüfnetzwerk nach AgID/ACN- & Garante-Vorgaben</p>
+        <p class="subtitle" id="ui-subtitle">Südtiroler Schulprüfnetzwerk (Kompakt-Check)</p>
       </div>
     </div>
     <div class="lang-switcher">
@@ -340,7 +339,7 @@
 
   <div class="tab-nav" id="tab-nav">
     <button class="tab-btn active" id="tab-preset" onclick="switchMode('preset')">⚡ Vorgeprüfte Tools</button>
-    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Selbstprüfung (Südtirol)</button>
+    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Selbstprüfung (5 Kernpunkte)</button>
   </div>
 
   <div id="mode-preset">
@@ -358,7 +357,7 @@
       <label id="ui-url-label" style="font-weight: 700; display: block; margin-top: 12px; margin-bottom: 6px;">Webadresse / Domain (optional):</label>
       <input type="text" id="new-tool-url" placeholder="z. B. anton.app">
       
-      <button class="btn-primary" id="ui-start-btn" onclick="startQuestionnaire()" style="margin-top: 16px; padding: 12px; width: 100%;">Weiter zum 10-Punkte-Fragebogen ➔</button>
+      <button class="btn-primary" id="ui-start-btn" onclick="startQuestionnaire()" style="margin-top: 16px; padding: 12px; width: 100%;">Weiter zum Kompakt-Fragebogen ➔</button>
     </div>
 
     <div id="manual-questions-container" style="display: none;">
@@ -412,20 +411,19 @@
   let currentEvalToolUrl = "";
   let generatedJsonCode = "";
 
-  // Wörterbuch für die Benutzeroberfläche
   const uiTexts = {
     de: {
       title: "DSGVO & OER Tool-Checker für Südtiroler Schulen",
-      subtitle: "Südtiroler Schulprüfnetzwerk nach AgID/ACN- & Garante-Vorgaben",
+      subtitle: "Südtiroler Schulprüfnetzwerk (Kompakt-Check)",
       searchLabel: "🔍 Tool oder Webadresse suchen:",
       searchBtn: "Prüfen",
       tabPreset: "⚡ Vorgeprüfte Tools",
-      tabManual: "📋 Selbstprüfung (Südtirol)",
+      tabManual: "📋 Selbstprüfung (5 Kernpunkte)",
       presetLabel: "Wähle eine geprüfte Anwendung aus der Datenbank:",
       defaultSelect: "-- Bitte Tool auswählen --",
       nameLabel: "Name des Tools:",
       urlLabel: "Webadresse / Domain (optional):",
-      startBtn: "Weiter zum 10-Punkte-Fragebogen ➔",
+      startBtn: "Weiter zum Kompakt-Fragebogen ➔",
       evidenceTitle: "Gefundene Nachweise & Richtlinien:",
       subTitle: "📩 Tool zur Aufnahme vorschlagen",
       subDesc: "Hilf mit, die Datenbank zu erweitern. Reiche diese Bewertung ein, damit sie zentral überprüft und für alle Schulen freigeschaltet wird.",
@@ -446,16 +444,16 @@
     },
     it: {
       title: "Verificatore Privacy (GDPR) & OER per le Scuole in Alto Adige",
-      subtitle: "Network di controllo scolastico secondo le direttive AgID/ACN e Garante Privacy",
+      subtitle: "Network di controllo scolastico (Check compatto)",
       searchLabel: "🔍 Cerca strumento o indirizzo web:",
       searchBtn: "Verifica",
       tabPreset: "⚡ Strumenti pre-verificati",
-      tabManual: "📋 Autovalutazione (Alto Adige)",
+      tabManual: "📋 Autovalutazione (5 punti chiave)",
       presetLabel: "Seleziona un'applicazione verificata dal database:",
       defaultSelect: "-- Seleziona uno strumento --",
       nameLabel: "Nome dello strumento:",
       urlLabel: "Indirizzo web / Dominio (opzionale):",
-      startBtn: "Procedi al questionario di 10 punti ➔",
+      startBtn: "Procedi al questionario compatto ➔",
       evidenceTitle: "Riferimenti e linee guida trovati:",
       subTitle: "📩 Proponi strumento per l'inclusione",
       subDesc: "Aiuta ad ampliare il database. Invia questa valutazione affinché venga verificata e abilitata per tutte le scuole.",
@@ -476,189 +474,99 @@
     }
   };
 
-  // Die 10 Südtiroler Kriterien (Zweisprachig)
+  // Die neuen 5 Kernfragen (Zweisprachig)
   const manualQuestions = {
     de: [
       {
-        q: "1. Serverstandort & ACN-Cloud-Qualifizierung (Pubblica Amministrazione)",
-        tip: "💡 <b>Such-Tipp:</b> Öffne die Seite der Datenschutzbestimmungen (<b>Privacy Policy</b>). Nutze <b>Strg + F</b> (Mac: <b>Cmd + F</b>) und suche nach Begriffen wie <i>Hosting</i>, <i>Server location</i>, <i>Datacenter</i>, <i>AWS</i> oder <i>EU Central</i>. <b>Hinweis:</b> Es reicht, wenn einer dieser Server-Hinweise auf einen EU-Standort oder das DPF hinweist.",
+        q: "1. Serverstandort & Cloud-Sicherheit (ACN / AgID)",
+        tip: "💡 <b>Such-Tipp:</b> Öffne die Seite der Datenschutzbestimmungen (<b>Privacy Policy</b>). Nutze <b>Strg + F</b> (Mac: <b>Cmd + F</b>) und suche nach <i>Hosting</i>, <i>Server location</i>, <i>Datacenter</i>, <i>AWS</i> oder <i>EU Central</i>. Es reicht, wenn ein Hinweis auf EU-Standort oder Data Privacy Framework (DPF) vorliegt.",
         options: [
-          { text: "Server in EU/EWR (oder US-DPF) & Dienst entspricht ACN/AgID-Cloud-Richtlinien", val: "ok" },
-          { text: "Drittlandserver ohne DPF oder fehlende ACN-Cloud-Qualifizierung", val: "fail" },
+          { text: "Server in EU/EWR (oder US-DPF) & entspricht grundlegenden Cloud-Sicherheitsstandards", val: "ok" },
+          { text: "Drittlandserver ohne DPF oder komplett unklarer Standort", val: "fail" },
           { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
         ]
       },
       {
-        q: "2. Auftragsverarbeitung (AVV) & Formelle Nomina durch Schulleitung",
-        tip: "💡 <b>Such-Tipp:</b> Suche in den AGB (<b>Terms of Service</b> / <b>ToS</b>) mit <b>Strg + F</b> (Mac: <b>Cmd + F</b>) nach <i>Data Processing Agreement</i>, <i>DPA</i>, <i>Processor</i> oder <i>Nomina a Responsabile</i>. <b>Hinweis:</b> Es reicht, wenn auch nur eine dieser Passagen oder ein Hinweis auf ein DPA existiert.",
+        q: "2. Auftragsverarbeitung (AVV / DPA)",
+        tip: "💡 <b>Such-Tipp:</b> Suche in den AGB (<b>Terms of Service</b> / <b>ToS</b>) mit <b>Strg + F</b> (Mac: <b>Cmd + F</b>) nach <i>Data Processing Agreement</i>, <i>DPA</i>, <i>Processor</i> oder <i>Nomina a Responsabile</i>. Es reicht, wenn ein Hinweis auf einen AVV existiert.",
         options: [
-          { text: "AVV (Art. 28) vorhanden; Nomina a Responsabile del Trattamento durch Schulleitung vorgesehen", val: "ok" },
-          { text: "Kein AVV vorhanden oder keine formelle Ernennung möglich", val: "fail" },
+          { text: "AVV (Art. 28 DSGVO) / DPA wird vom Anbieter bereitgestellt", val: "ok" },
+          { text: "Kein AVV / DPA verfügbar oder explizit ausgeschlossen", val: "fail" },
           { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
         ]
       },
       {
-        q: "3. Verschlüsselung & AgID-Sicherheitsstandards",
-        tip: "💡 <b>Such-Tipp:</b> Prüfe die Webadresse (muss mit <b>https://</b> beginnen). Suche im Trust Center oder in den Security-FAQs mit <b>Strg + F</b> nach <i>Encryption at rest</i> oder <i>TLS</i>. <b>Hinweis:</b> Das Vorhandensein von https:// erfüllt bereits den Mindeststandard für den Transport.",
+        q: "3. Rechtsgrundlage für den Schulbetrieb",
+        tip: "💡 <b>Such-Tipp:</b> Prüfe, ob das Tool im regulären Pflichtunterricht eingesetzt wird (öffentliches Interesse / <i>Public Interest</i>) oder ob private Registrierungen erzwungen werden.",
         options: [
-          { text: "Transportverschlüsselung (TLS 1.3) & Speicherverschlüsselung (at rest) nach Art. 32 DSGVO aktiv", val: "ok" },
-          { text: "Verschlüsselung unvollständig oder Sicherheitsstandards unklar", val: "fail" },
-          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
-        ]
-      },
-      {
-        q: "4. Rollenkonzept & Zugriffsrechte (Autorizzati al trattamento)",
-        tip: "💡 <b>Such-Tipp:</b> Suche in der Doku nach <i>Roles</i>, <i>Permissions</i> oder <i>Teacher / Student access</i>. <b>Hinweis:</b> Es reicht, wenn es getrennte Lehrer- und Schülerkonten gibt.",
-        options: [
-          { text: "Strikte Rollentrennung (Schulleitung, Lehrpersonen, Eltern, Schüler) gemäß Art. 2-quaterdecies", val: "ok" },
-          { text: "Keine Differenzierung der Zugriffsrechte vorhanden", val: "fail" },
-          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
-        ]
-      },
-      {
-        q: "5. Rechtsgrundlage für den Schulbetrieb",
-        tip: "💡 <b>Such-Tipp:</b> Prüfe, ob das Tool im regulären Pflichtunterricht eingesetzt wird (öffentliches Interesse / <i>Public Interest</i>) oder ob Registrierungen auf privater Freiwilligkeit beruhen.",
-        options: [
-          { text: "Nutzung basiert auf Aufgabe im öffentlichen Interesse (compito di interesse pubblico, Art. 6.1.e)", val: "ok" },
+          { text: "Nutzung basiert auf Aufgabe im öffentlichen Interesse (Schulunterricht)", val: "ok" },
           { text: "Fälschlicherweise pauschale Eltern-Einwilligung für Pflichtaufgaben verlangt", val: "warn" },
           { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
         ]
       },
       {
-        q: "6. Löschkonzept vs. Archivordnung (Piano di conservazione e scarto)",
-        tip: "💡 <b>Such-Tipp:</b> Nutze <b>Strg + F</b> (Mac: <b>Cmd + F</b>) in der Privacy Policy und suche nach <i>Data retention</i> oder <i>Deletion</i>. <b>Hinweis:</b> Es reicht, wenn ein manuelles Löschen von Schülerdaten in den Einstellungen möglich ist.",
+        q: "4. Verbot von Profiling, Werbe-Tracking & KI-Training",
+        tip: "💡 <b>Such-Tipp:</b> Suche in den AGB (<b>Terms of Service</b>) mit <b>Strg + F</b> nach <i>Advertising</i>, <i>Tracking</i>, <i>Third-party</i> oder <i>AI training</i>. Wenn Werbe-Tracking oder KI-Training mit Schülerdaten verneint werden, ist das ein starkes Plus.",
         options: [
-          { text: "Löschfristen definiert & mit dem Schularchivplan (Piano di conservazione) abgestimmt", val: "ok" },
-          { text: "Unbefristete Speicherung oder Konflikt mit öffentlichen Aufbewahrungsfristen", val: "fail" },
+          { text: "Kein Werbetracking, keine Weitergabe an Dritte & kein KI-Training mit Schülerdaten", val: "ok" },
+          { text: "Kommerzielle Datenverwertung, Werbe-Tracking oder KI-Training mit Nutzereingaben aktiv", val: "fail" },
           { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
         ]
       },
       {
-        q: "7. Verbot von Profiling & Kommerz (Garante Privacy - „La scuola a prova di privacy“)",
-        tip: "💡 <b>Such-Tipp:</b> Suche in den AGB (<b>Terms of Service</b>) mit <b>Strg + F</b> (Mac: <b>Cmd + F</b>) nach <i>Advertising</i>, <i>Tracking</i>, <i>Third-party</i> oder <i>AI training</i>. <b>Hinweis:</b> Reicht es dir, dass eine dieser Klauseln (z. B. kein Werbe-Tracking) explizit verneint wird? Das ist bereits ein wichtiger Pluspunkt.",
+        q: "5. Transparente Information (Informativa ex Art. 13/14)",
+        tip: "💡 <b>Such-Tipp:</b> Prüfe, ob der Anbieter eine für Schulen oder Nutzer gedachte transparente Datenschutzerklärung bereitstellt.",
         options: [
-          { text: "Kein Werbetracking, kein Profiling Minderjähriger, keine Datenweitergabe an Dritte", val: "ok" },
-          { text: "Kommerzielle Datenverwertung, KI-Training mit Schülerdaten oder Tracking aktiv", val: "fail" },
-          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
-        ]
-      },
-      {
-        q: "8. DPO-Abstimmung & Eintrag im Verzeichnis (Registro dei trattamenti)",
-        tip: "💡 <b>Such-Tipp:</b> Dies ist ein interner Verwaltungsschritt an deiner Schule: Kläre dies mit eurer Schulleitung oder dem Datenschutzbeauftragten (<b>DPO / RPD</b>).",
-        options: [
-          { text: "Mit Datenschutzbeauftragtem (DPO/RPD) abgestimmt & im Verzeichnis der Schule (Art. 30 DSGVO) erfasst", val: "ok" },
-          { text: "Nicht im Registro dei trattamenti erfasst", val: "warn" },
-          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
-        ]
-      },
-      {
-        q: "9. Privacy by Design & AgID-Softwarerichtlinien",
-        tip: "💡 <b>Such-Tipp:</b> Achte darauf, ob das Tool datenschutzfreundliche Standardeinstellungen (<i>Privacy by default</i>) nutzt oder ob z. B. Analysetools beim Start ungefragt aktiv sind.",
-        options: [
-          { text: "Datenschutzfreundliche Voreinstellungen aktiv (Art. 25 DSGVO) gemäß Beschaffungsrichtlinien", val: "ok" },
-          { text: "Datenschutzunfreundliche Standardeinstellungen", val: "fail" },
-          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
-        ]
-      },
-      {
-        q: "10. Transparente Information (Informativa ex Art. 13/14)",
-        tip: "💡 <b>Such-Tipp:</b> Prüfe, ob der Anbieter eine für Bildungseinrichtungen gedachte Informationsseite bereitstellt.",
-        options: [
-          { text: "Information für Eltern/Schüler vorab veröffentlicht (z. B. via Digitales Register / Schulhomepage)", val: "ok" },
-          { text: "Keine transparente Informativa bereitgestellt", val: "fail" },
+          { text: "Transparente Informationen / Informativa für Nutzer und Eltern vorhanden", val: "ok" },
+          { text: "Keine transparente Datenschutzerklärung bereitgestellt", val: "fail" },
           { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
         ]
       }
     ],
     it: [
       {
-        q: "1. Sede del server & Qualificazione Cloud ACN (Pubblica Amministrazione)",
-        tip: "💡 <b>Consiglio di ricerca:</b> Apri l'informativa sulla privacy (<b>Privacy Policy</b>). Usa <b>Ctrl + F</b> (Mac: <b>Cmd + F</b>) per aprire la barra di ricerca e cerca termini come <i>Hosting</i>, <i>Server location</i>, <i>Datacenter</i>, <i>AWS</i> o <i>EU Central</i>. <b>Nota:</b> È sufficiente che uno di questi indizi confermi una sede nell'UE o il DPF.",
+        q: "1. Sede del server & Sicurezza Cloud (ACN / AgID)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Apri l'informativa sulla privacy (<b>Privacy Policy</b>). Usa <b>Ctrl + F</b> (Mac: <b>Cmd + F</b>) e cerca <i>Hosting</i>, <i>Server location</i>, <i>Datacenter</i>, <i>AWS</i> o <i>EU Central</i>. È sufficiente un riferimento a server UE o Data Privacy Framework (DPF).",
         options: [
-          { text: "Server in UE/SEE (o US-DPF) & Servizio conforme alle linee guida Cloud ACN/AgID", val: "ok" },
-          { text: "Server in paesi terzi senza DPF o mancata qualificazione Cloud ACN", val: "fail" },
+          { text: "Server in UE/SEE (o US-DPF) & conformità ai requisiti di sicurezza di base", val: "ok" },
+          { text: "Server in paesi terzi senza DPF o sede completamente sconosciuta", val: "fail" },
           { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
         ]
       },
       {
-        q: "2. Trattamento dei dati (AVV) & Nomina formale da parte del Dirigente",
-        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nei Termini di servizio (<b>Terms of Service</b> / <b>ToS</b>) tramite <b>Ctrl + F</b> (Mac: <b>Cmd + F</b>) termini come <i>Data Processing Agreement</i>, <i>DPA</i>, <i>Processor</i> o <i>Nomina a Responsabile</i>. <b>Nota:</b> È sufficiente la presenza di un riferimento al DPA.",
+        q: "2. Trattamento dei dati (AVV / DPA)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nei Termini di servizio (<b>Terms of Service</b>) tramite <b>Ctrl + F</b> termini come <i>Data Processing Agreement</i>, <i>DPA</i>, <i>Processor</i> o <i>Nomina a Responsabile</i>. È sufficiente l'offerta di un DPA.",
         options: [
-          { text: "DPA (Art. 28 GDPR) disponibile; Nomina a Responsabile del Trattamento prevista dal Dirigente Scolastico", val: "ok" },
-          { text: "Nessun DPA disponibile o nomina formale non prevista", val: "fail" },
+          { text: "Contratto di Responsabile (DPA / Art. 28 GDPR) fornito dal gestore", val: "ok" },
+          { text: "Nessun DPA disponibile o espressamente escluso", val: "fail" },
           { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
         ]
       },
       {
-        q: "3. Crittografia & Standard di sicurezza AgID",
-        tip: "💡 <b>Consiglio di ricerca:</b> Verifica che l'indirizzo web inizi con <b>https://</b>. Cerca nel Trust Center o nelle FAQ di sicurezza tramite <b>Ctrl + F</b> termini come <i>Encryption at rest</i> o <i>TLS</i>. <b>Nota:</b> La presenza di https:// soddisfa già il requisito minimo di trasporto.",
+        q: "3. Base giuridica per l'attività scolastica",
+        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se lo strumento è utilizzato nell'ambito della didattica obbligatoria (interesse pubblico / <i>Public Interest</i>).",
         options: [
-          { text: "Crittografia di trasporto (TLS 1.3) & crittografia dei dati a riposo (at rest) attive (Art. 32 GDPR)", val: "ok" },
-          { text: "Crittografia incompleta o standard di sicurezza non chiari", val: "fail" },
+          { text: "Utilizzo basato su un compito di interesse pubblico (didattica scolastica)", val: "ok" },
+          { text: "Richiesto erroneamente il consenso dei genitori per attività obbligatorie", val: "warn" },
           { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
         ]
       },
       {
-        q: "4. Gestione dei ruoli & permessi (Autorizzati al trattamento)",
-        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nella documentazione termini come <i>Roles</i>, <i>Permissions</i> o <i>Teacher / Student access</i>. <b>Nota:</b> È sufficiente la presenza di account distinti per docenti e studenti.",
+        q: "4. Divieto di profilazione, tracciamento pubblicitario & addestramento IA",
+        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nei Termini di servizio tramite <b>Ctrl + F</b> parole come <i>Advertising</i>, <i>Tracking</i>, <i>Third-party</i> o <i>AI training</i>. L'esclusione di tracciamento o addestramento IA è un forte punto a favore.",
         options: [
-          { text: "Separazione rigorosa dei ruoli (Dirigente, Docenti, Genitori, Studenti) ai sensi dell'art. 2-quaterdecies", val: "ok" },
-          { text: "Nessuna differenziazione dei diritti di accesso disponibile", val: "fail" },
+          { text: "Nessun tracciamento pubblicitario, nessuna cessione a terzi & niente addestramento IA", val: "ok" },
+          { text: "Sfruttamento commerciale, tracciamento pubblicitario o addestramento IA attivi", val: "fail" },
           { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
         ]
       },
       {
-        q: "5. Base giuridica per l'attività scolastica",
-        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se lo strumento viene utilizzato nell'ambito della didattica obbligatoria (interesse pubblico / <i>Public Interest</i>) o se la registrazione è facoltativa.",
+        q: "5. Informativa trasparente (Informativa ex art. 13/14 GDPR)",
+        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se il fornitore mette a disposizione un'informativa sulla privacy chiara e trasparente.",
         options: [
-          { text: "Utilizzo basato su un compito di interesse pubblico (Art. 6.1.e GDPR / Art. 2-ter)", val: "ok" },
-          { text: "Richiesto erroneamente il consenso generale dei genitori per attività obbligatorie", val: "warn" },
-          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
-        ]
-      },
-      {
-        q: "6. Politica di cancellazione vs. Piano di conservazione e scarto",
-        tip: "💡 <b>Consiglio di ricerca:</b> Usa <b>Ctrl + F</b> (Mac: <b>Cmd + F</b>) nella Privacy Policy e cerca <i>Data retention</i> o <i>Deletion</i>. <b>Nota:</b> È sufficiente che sia possibile la cancellazione manuale dei dati degli studenti.",
-        options: [
-          { text: "Termini di conservazione definiti & compatibili con il piano di conservazione scolastico", val: "ok" },
-          { text: "Conservazione a tempo indeterminato o conflitto con i termini pubblici", val: "fail" },
-          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
-        ]
-      },
-      {
-        q: "7. Divieto di profilazione & fini commerciali (Garante Privacy - „La scuola a prova di privacy“)",
-        tip: "💡 <b>Consiglio di ricerca:</b> Cerca nei Termini di servizio (<b>Terms of Service</b>) tramite <b>Ctrl + F</b> parole come <i>Advertising</i>, <i>Tracking</i>, <i>Third-party</i> o <i>AI training</i>. <b>Nota:</b> Se una di queste pratiche commerciali viene esplicitamente esclusa, è un ottimo indicatore.",
-        options: [
-          { text: "Nessun tracciamento pubblicitario, nessuna profilazione di minori, nessuna cessione a terzi", val: "ok" },
-          { text: "Sfruttamento commerciale, addestramento IA con dati degli studenti o tracciamento attivi", val: "fail" },
-          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
-        ]
-      },
-      {
-        q: "8. Consultazione RPD/DPO & Registro dei trattamenti (Art. 30 GDPR)",
-        tip: "💡 <b>Consiglio di ricerca:</b> Questo è un passaggio amministrativo interno: da verificare con la direzione scolastica o con il Responsabile della Protezione dei Dati (<b>RPD / DPO</b>).",
-        options: [
-          { text: "Concordato con il Responsabile della Protezione dei Dati (RPD/DPO) & inserito nel Registro dei trattamenti", val: "ok" },
-          { text: "Non inserito nel Registro dei trattamenti", val: "warn" },
-          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
-        ]
-      },
-      {
-        q: "9. Privacy by Design & Linee guida software AgID",
-        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se lo strumento adotta impostazioni predefinite a tutela della privacy (<i>Privacy by default</i>) o se strumenti di analisi sono attivi senza consenso.",
-        options: [
-          { text: "Impostazioni predefinite a tutela della privacy attive (Art. 25 GDPR) secondo le linee guida AgID", val: "ok" },
-          { text: "Impostazioni standard non rispettose della privacy", val: "fail" },
-          { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
-        ]
-      },
-      {
-        q: "10. Informativa trasparente (Informativa ex art. 13/14 GDPR)",
-        tip: "💡 <b>Consiglio di ricerca:</b> Verifica se il fornitore mette a disposizione un'informativa dedicata alle istituzioni scolastiche.",
-        options: [
-          { text: "Informativa per genitori/studenti pubblicata preventivamente (es. Registro Elettronico / Sito web)", val: "ok" },
+          { text: "Informativa trasparente disponibile per utenti e genitori", val: "ok" },
           { text: "Nessuna informativa trasparente fornita", val: "fail" },
-          { text: "⚪ Non verificabile / Keine Angabe (incerto)", val: "warn" }
+          { text: "⚪ Non verificabile / Nessuna indicazione (incerto)", val: "warn" }
         ]
       }
     ]
@@ -672,7 +580,6 @@
     document.getElementById('btn-de').className = `lang-btn ${lang === 'de' ? 'active' : ''}`;
     document.getElementById('btn-it').className = `lang-btn ${lang === 'it' ? 'active' : ''}`;
     
-    // UI Texte aktualisieren
     const t = uiTexts[lang];
     document.getElementById('page-title').innerText = t.title;
     document.getElementById('ui-main-title').innerText = "DSGVO & OER Checker";
@@ -694,10 +601,8 @@
     document.getElementById('ui-print-btn').innerText = t.printBtn;
     document.getElementById('ui-reset-btn').innerText = t.resetBtn;
 
-    // Dropdown aktualisieren
     loadToolsDatabase();
 
-    // Falls gerade im Fragebogen, Frage aktualisieren
     if (document.getElementById('manual-questions-container').style.display === 'block') {
       renderManualStep();
     }
@@ -837,16 +742,16 @@
 
     let status = "GREEN";
     let title = `${currentEvalToolName}: ${currentLang === 'de' ? 'Südtirol-Konform' : 'Conforme Alto Adige'}`;
-    let summary = currentLang === 'de' ? "Das Tool erfüllt alle wesentlichen Pflichtkriterien der Südtiroler DSGVO-Checkliste für den Schulbetrieb." : "Lo strumento soddisfa tutti i criteri essenziali della checklist GDPR per le scuole in Alto Adige.";
+    let summary = currentLang === 'de' ? "Das Tool erfüllt alle wesentlichen Kernkriterien der Südtiroler DSGVO-Checkliste für den Schulbetrieb." : "Lo strumento soddisfa tutti i criteri chiave della checklist GDPR per le scuole in Alto Adige.";
 
     if (fails > 0) {
       status = "RED";
       title = `${currentEvalToolName}: ${currentLang === 'de' ? 'Nicht zulässig' : 'Non consentito'}`;
-      summary = currentLang === 'de' ? `Das Tool verletzt ${fails} gesetzliches Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben.` : `Lo strumento viola ${fails} criterio/i obbligatorio/i delle normative ACN/AgID e GDPR.`;
+      summary = currentLang === 'de' ? `Das Tool verletzt ${fails} gesetzliches Kernkriterium/Kernkriterien der ACN/AgID- und DSGVO-Vorgaben.` : `Lo strumento viola ${fails} criterio/i chiave delle normative ACN/AgID e GDPR.`;
     } else if (warns > 0) {
       status = "YELLOW";
       title = `${currentEvalToolName}: ${currentLang === 'de' ? 'Bedingt nutzbar (Unklare Punkte)' : 'Utilizzabile con riserva (Punti incerti)'}`;
-      summary = currentLang === 'de' ? `Ein oder mehrere Kriterien wurden mit "Nicht überprüfbar" bewertet. Eine Prüfung durch die Schulleitung/den DPO wird empfohlen.` : `Uno o più criteri sono stati valutati come "Non verificabile". Si consiglia un controllo da parte della dirigenza/RPD.`;
+      summary = currentLang === 'de' ? `Ein oder mehrere Kriterien wurden mit "Nicht überprüfbar" bewertet. Eine genauere Prüfung wird empfohlen.` : `Uno o più criteri sono stati valutati come "Non verificabile". Si consiglia un controllo più approfondito.`;
     }
 
     const toolKey = currentEvalToolName.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -863,13 +768,13 @@
       summary: summary,
       oer_status: "⚪ OER: Nicht bewertet",
       evidence: [
-        currentLang === 'de' ? "Selbstprüfung durch Lehrkraft nach Südtiroler 10-Punkte-Checkliste." : "Autovalutazione da parte del docente secondo la checklist di 10 punti dell'Alto Adige."
+        currentLang === 'de' ? "Kompakt-Selbstprüfung durch Lehrkraft nach 5-Punkte-Checkliste." : "Autovalutazione compatta da parte del docente secondo la checklist di 5 punti."
       ]
     };
 
     generatedJsonCode = JSON.stringify(jsonObj, null, 2);
 
-    showResult(status, title, summary, [], currentLang === 'de' ? "⚪ Selbstprüfung Südtirol" : "⚪ Autovalutazione Alto Adige", currentLang === 'de' ? "10-Punkte-Checkliste Südtirol" : "Checklist 10 punti Alto Adige", true);
+    showResult(status, title, summary, [], currentLang === 'de' ? "⚪ Kompakt-Check Südtirol" : "⚪ Check compatto Alto Adige", currentLang === 'de' ? "5-Punkte-Kompaktcheck Südtirol" : "Checklist compatta 5 punti Alto Adige", true);
   }
 
   function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo, allowSubmission = false) {
