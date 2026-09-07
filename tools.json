@@ -75,19 +75,18 @@
       "Modelltraining mit Nutzereingaben im kostenlosen Standardkonto aktiv.",
       "Nutzungsbedingungen schließen eigenständige Nutzung unter 13 Jahren aus."
     ]
+  },
+  "claude": {
+    "keywords": [
+      "claude",
+      "claude.ai"
+    ],
+    "status": "RED",
+    "title": "claude",
+    "summary": "Das Tool verletzt 2 gesetzliches Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben.",
+    "oer_status": "⚪ OER: Nicht bewertet",
+    "evidence": [
+      "Selbstprüfung durch Lehrkraft nach Südtiroler 10-Punkte-Checkliste."
+    ]
   }
-"claude": {
-"keywords": [
-"claude",
-"claude.ai"
-],
-"status": "RED",
-"title": "claude",
-"summary": "Das Tool verletzt 2 gesetzliches Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben.",
-"oer_status": "⚪ OER: Nicht bewertet",
-"evidence": [
-"Selbstprüfung durch Lehrkraft nach Südtiroler 10-Punkte-Checkliste."
-]
-}
-}
 }
