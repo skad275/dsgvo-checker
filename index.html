@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSGVO & OER Tool-Checker für Schulen</title>
+  <title>DSGVO & OER Tool-Checker für Südtiroler Schulen</title>
   <style>
     :root {
       --bg-dark: #090d16;
@@ -221,6 +221,7 @@
       margin-top: 10px;
       transition: all 0.2s ease;
       width: 100%;
+      line-height: 1.4;
     }
 
     .btn-option:hover {
@@ -283,7 +284,7 @@
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--pink-accent), var(--purple-accent));
-      width: 16%;
+      width: 10%;
       transition: width 0.3s ease;
     }
 
@@ -312,10 +313,10 @@
 
 <div class="card">
   <div class="header-container">
-    <div class="header-icon">📚</div>
+    <div class="header-icon">🛡️</div>
     <div>
       <h2>DSGVO & OER Checker</h2>
-      <p class="subtitle">Schulwerkzeuge auf Datenschutz und offene Lizenzen prüfen</p>
+      <p class="subtitle">Südtiroler Schulprüfnetzwerk nach AgID/ACN- und Garante-Vorgaben</p>
     </div>
   </div>
 
@@ -331,7 +332,7 @@
 
   <div class="tab-nav" id="tab-nav">
     <button class="tab-btn active" id="tab-preset" onclick="switchMode('preset')">⚡ Vorgeprüfte Tools</button>
-    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Selbstprüfung</button>
+    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Selbstprüfung (Südtirol)</button>
   </div>
 
   <div id="mode-preset">
@@ -414,7 +415,7 @@
       showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
     } else {
       statusMsg.className = "status-msg not-found";
-      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Nutze die Selbstprüfung zur Bewertung.`;
+      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Nutze die Selbstprüfung (10 Kriterien Südtirol).`;
       statusMsg.style.display = "block";
       switchMode('manual');
     }
@@ -438,50 +439,76 @@
     showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
   }
 
+  // 10 Südtiroler Prüfkriterien
   const manualQuestions = [
     {
-      q: "1. Wer arbeitet direkt mit dem Tool?",
+      q: "1. Serverstandort & ACN-Cloud-Qualifizierung (Pubblica Amministrazione)",
       options: [
-        { text: "Nur die Lehrperson (Zentral zur Vorbereitung/Demonstration)", val: "teacher" },
-        { text: "Schüler*innen mit eigenen Konten (Login/Registrierung)", val: "student_login" },
-        { text: "Schüler*innen anonym (ohne Registrierung via Code/Link)", val: "student_anon" }
+        { text: "Server in EU/EWR (oder US-DPF) & Dienst entspricht ACN/AgID-Cloud-Richtlinien", val: "ok" },
+        { text: "Drittlandserver ohne DPF oder fehlende ACN-Cloud-Qualifizierung", val: "fail" }
       ]
     },
     {
-      q: "2. Werden personenbezogene Daten verarbeitet?",
+      q: "2. Auftragsverarbeitung (AVV) & Formelle Nomina durch Schulleitung",
       options: [
-        { text: "Nein (Keine Klarnamen, E-Mails, Stimmen, Fotos oder Noten)", val: "no_pii" },
-        { text: "Ja (Eingabe oder Speicherung persönlicher Daten)", val: "has_pii" }
+        { text: "AVV (Art. 28) vorhanden; Nomina a Responsabile del Trattamento durch Schulleitung (Dirigente Scolastico) vorgesehen", val: "ok" },
+        { text: "Kein AVV vorhanden oder keine formelle Ernennung möglich", val: "fail" }
       ]
     },
     {
-      q: "3. Wo liegt der Serverstandort?",
+      q: "3. Verschlüsselung & AgID-Sicherheitsstandards",
       options: [
-        { text: "EU / EWR oder US-Anbieter mit DPF-Zertifizierung", val: "eu_dpf" },
-        { text: "USA ohne DPF / Drittland / Unbekannt", val: "third_country" }
+        { text: "Transportverschlüsselung (TLS 1.3) & Speicherverschlüsselung (at rest) nach Art. 32 DSGVO aktiv", val: "ok" },
+        { text: "Verschlüsselung unvollständig oder Sicherheitsstandards unklar", val: "fail" }
       ]
     },
     {
-      q: "4. Liegt ein Vertrag zur Auftragsverarbeitung (AVV) vor?",
+      q: "4. Rollenkonzept & Zugriffsrechte (Autorizzati al trattamento)",
       options: [
-        { text: "Ja, AVV (Art. 28 DSGVO) ist vorhanden/abgeschlossen", val: "avv_yes" },
-        { text: "Nein / Nicht vorhanden / Unklar", val: "avv_no" }
+        { text: "Strikte Rollentrennung (Schulleitung, Lehrpersonen, Eltern, Schüler) gemäß Art. 2-quaterdecies Codice Privacy", val: "ok" },
+        { text: "Keine Differenzierung der Zugriffsrechte vorhanden", val: "fail" }
       ]
     },
     {
-      q: "5. Wie verhält sich das Tool beim KI-Modelltraining?",
+      q: "5. Rechtsgrundlage für den Schulbetrieb",
       options: [
-        { text: "Kein KI-Training mit Daten (Opt-Out aktiv / Schul-Lizenz)", val: "no_train" },
-        { text: "Eingaben/Prompts werden zum KI-Modelltraining genutzt", val: "train" }
+        { text: "Nutzung basiert auf Aufgabe im öffentlichen Interesse (compito di interesse pubblico, Art. 6.1.e DSGVO / Art. 2-ter)", val: "ok" },
+        { text: "Fälschlicherweise pauschale Eltern-Einwilligung für Pflichtaufgaben verlangt", val: "warn" }
       ]
     },
     {
-      q: "6. (Optional) OER-Tauglichkeit & Output-Lizenzen:",
+      q: "6. Löschkonzept vs. Archivordnung (Piano di conservazione e scarto)",
       options: [
-        { text: "Export in offenen Formaten (PDF, SVG, ODT) & frei lizenzierbar (CC)", val: "oer_full" },
-        { text: "Export nur in geschlossenen Formaten (Bearbeitung braucht Account)", val: "oer_limited" },
-        { text: "AGB schränken Rechte am erzeugten Material ein", val: "oer_restricted" },
-        { text: "OER nicht prüfen / Übergehen", val: "oer_skip" }
+        { text: "Löschfristen definiert & mit dem Schularchivplan (Piano di conservazione) abgestimmt", val: "ok" },
+        { text: "Unbefristete Speicherung oder Konflikt mit öffentlichen Aufbewahrungsfristen", val: "fail" }
+      ]
+    },
+    {
+      q: "7. Verbot von Profiling & Kommerz (Garante Privacy - „La scuola a prova di privacy“)",
+      options: [
+        { text: "Kein Werbetracking, kein Profiling Minderjähriger, keine Datenweitergabe an Dritte", val: "ok" },
+        { text: "Kommerzielle Datenverwertung, KI-Training mit Schülerdaten oder Tracking aktiv", val: "fail" }
+      ]
+    },
+    {
+      q: "8. DPO-Abstimmung & Eintrag im Verzeichnis (Registro dei trattamenti)",
+      options: [
+        { text: "Mit Datenschutzbeauftragtem (DPO/RPD) abgestimmt & im Verzeichnis der Schule (Art. 30 DSGVO) erfasst", val: "ok" },
+        { text: "Nicht im Registro dei trattamenti erfasst", val: "warn" }
+      ]
+    },
+    {
+      q: "9. Privacy by Design & AgID-Softwarerichtlinien",
+      options: [
+        { text: "Datenschutzfreundliche Voreinstellungen aktiv (Art. 25 DSGVO) gemäß Beschaffungsrichtlinien", val: "ok" },
+        { text: "Datenschutzunfreundliche Standardeinstellungen", val: "fail" }
+      ]
+    },
+    {
+      q: "10. Transparente Information (Informativa ex Art. 13/14)",
+      options: [
+        { text: "Information für Eltern/Schüler vorab veröffentlicht (z. B. via Digitales Register / Schulhomepage)", val: "ok" },
+        { text: "Keine transparente Informativa bereitgestellt", val: "fail" }
       ]
     }
   ];
@@ -511,25 +538,24 @@
   }
 
   function evaluateManual() {
-    const [userGroup, pii, server, avv, train, oer] = manualAnswers;
-    let status = "GREEN", title = "Unbedenklich nutzbar", summary = "Das Tool erfüllt die wesentlichen DSGVO-Anforderungen für den Schuleinsatz.";
+    const fails = manualAnswers.filter(a => a === "fail").length;
+    const warns = manualAnswers.filter(a => a === "warn").length;
 
-    if ((userGroup === "student_login" && avv === "avv_no") || (pii === "has_pii" && server === "third_country") || train === "train") {
+    let status = "GREEN";
+    let title = "Südtirol-Konform (Freigabe möglich)";
+    let summary = "Das Tool erfüllt alle 10 Pflichtkriterien der Südtiroler DSGVO-Checkliste für den Schulbetrieb (AgID/ACN & Garante Privacy).";
+
+    if (fails > 0) {
       status = "RED";
-      title = "Nicht zulässig";
-      summary = "Der Einsatz verstößt gegen Datenschutzvorgaben (z. B. fehlender AVV bei Schülerkonten, Drittlandtransfer ohne Schutz oder KI-Training mit Daten).";
-    } else if (avv === "avv_no" || server === "third_country" || userGroup === "student_login") {
+      title = "Nicht zulässig für Südtiroler Schulen";
+      summary = `Das Tool verletzt ${fails} gesetzliche Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben für die öffentliche Schule.`;
+    } else if (warns > 0) {
       status = "YELLOW";
-      title = "Bedingt nutzbar";
-      summary = "Nutzung nur unter Auflagen: Anonyme Pseudonyme verwenden, Einwilligung einholen oder ausschließlich als Demonstrationsmedium nutzen.";
+      title = "Bedingt nutzbar (Organisatorische Nachbesserung erforderlich)";
+      summary = "Technisch zulässig. Es fehlen jedoch organisatorische Schritte an der Schule (z. B. Eintragung im Registro dei trattamenti oder Klärung der Rechtsgrundlage).";
     }
 
-    let oerStatus = "⚪ OER: Nicht geprüft";
-    if (oer === "oer_full") oerStatus = "🟢 OER: Hervorragend geeignet (Frei lizenzierbar & offen)";
-    if (oer === "oer_limited") oerStatus = "🟡 OER: Eingeschränkt (Proprietäres Format / Account-Pflicht)";
-    if (oer === "oer_restricted") oerStatus = "🔴 OER: Problematisch (Eingeschränkte Nutzungsrechte laut AGB)";
-
-    showResult(status, title, summary, [], oerStatus, "Manueller Fragenkatalog");
+    showResult(status, title, summary, [], "⚪ Selbstprüfung Südtirol", "10-Punkte-Checkliste Südtirol");
   }
 
   function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo) {
