@@ -470,82 +470,92 @@
   const manualQuestions = [
     {
       q: "1. Serverstandort & ACN-Cloud-Qualifizierung (Pubblica Amministrazione)",
-      tip: "💡 <b>Prüf-Anleitung:</b> Suche im Footer (Fusszeile) der Webseite oder in den Datenschutzbestimmungen (Privacy Policy) nach Begriffen wie <i>Hosting</i>, <i>AWS</i>, <i>Server location</i>, <i>Datacenter</i> oder <i>EU Central</i>. Bei US-Anbietern sollte das <i>Data Privacy Framework (DPF)</i> erwähnt sein.",
+      tip: "💡 <b>Prüf-Anleitung:</b> Suche im Footer (Fusszeile) oder in den Datenschutzbestimmungen (<b>Privacy Policy</b> / <b>Informativa sulla privacy</b>) nach Begriffen wie <i>Hosting</i>, <i>Server location</i>, <i>Datacenter</i> oder <i>EU Central</i>.",
       options: [
         { text: "Server in EU/EWR (oder US-DPF) & Dienst entspricht ACN/AgID-Cloud-Richtlinien", val: "ok" },
-        { text: "Drittlandserver ohne DPF oder fehlende ACN-Cloud-Qualifizierung", val: "fail" }
+        { text: "Drittlandserver ohne DPF oder fehlende ACN-Cloud-Qualifizierung", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "2. Auftragsverarbeitung (AVV) & Formelle Nomina durch Schulleitung",
-      tip: "💡 <b>Prüf-Anleitung:</b> Suche in den AGB nach <i>Data Processing Agreement (DPA)</i>, <i>Data Processing Addendum</i> oder <i>Contratto di Nomina a Responsabile</i>. Bietet der Anbieter einen AVV an?",
+      tip: "💡 <b>Prüf-Anleitung:</b> Suche in den Allgemeinen Geschäftsbedingungen (<b>Terms of Service</b> / <b>ToS</b>) oder im Trust Center nach <i>Data Processing Agreement (DPA)</i> oder <i>Nomina a Responsabile</i>.",
       options: [
-        { text: "AVV (Art. 28) vorhanden; Nomina a Responsabile del Trattamento durch Schulleitung (Dirigente Scolastico) vorgesehen", val: "ok" },
-        { text: "Kein AVV vorhanden oder keine formelle Ernennung möglich", val: "fail" }
+        { text: "AVV (Art. 28) vorhanden; Nomina a Responsabile del Trattamento durch Schulleitung vorgesehen", val: "ok" },
+        { text: "Kein AVV vorhanden oder keine formelle Ernennung möglich", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "3. Verschlüsselung & AgID-Sicherheitsstandards",
-      tip: "💡 <b>Prüf-Anleitung:</b> Standardmäßig wird geprüft, ob die Webadresse mit <b>https://</b> beginnt (TLS). In den Security-FAQs des Anbieters wird zudem oft die Verschlüsselung ruhender Daten (Encryption at rest) bestätigt.",
+      tip: "💡 <b>Prüf-Anleitung:</b> Prüfe, ob die Webadresse mit <b>https://</b> beginnt (TLS). In den Sicherheits-FAQs (<b>Security Documentation</b>) wird oft die Verschlüsselung ruhender Daten (<i>Encryption at rest</i>) bestätigt.",
       options: [
         { text: "Transportverschlüsselung (TLS 1.3) & Speicherverschlüsselung (at rest) nach Art. 32 DSGVO aktiv", val: "ok" },
-        { text: "Verschlüsselung unvollständig oder Sicherheitsstandards unklar", val: "fail" }
+        { text: "Verschlüsselung unvollständig oder Sicherheitsstandards unklar", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "4. Rollenkonzept & Zugriffsrechte (Autorizzati al trattamento)",
-      tip: "💡 <b>Prüf-Anleitung:</b> Bietet das Tool Admin-Bereiche, Lehrerkonten und separate Schülerzugänge, sodass nicht jeder alles sieht?",
+      tip: "💡 <b>Prüf-Anleitung:</b> Bietet das Tool unterschiedliche Rollen wie Administrator, Lehrpersonen (Teachers) und Schüler (Students), sodass Datenrechte getrennt sind?",
       options: [
-        { text: "Strikte Rollentrennung (Schulleitung, Lehrpersonen, Eltern, Schüler) gemäß Art. 2-quaterdecies Codice Privacy", val: "ok" },
-        { text: "Keine Differenzierung der Zugriffsrechte vorhanden", val: "fail" }
+        { text: "Strikte Rollentrennung (Schulleitung, Lehrpersonen, Eltern, Schüler) gemäß Art. 2-quaterdecies", val: "ok" },
+        { text: "Keine Differenzierung der Zugriffsrechte vorhanden", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "5. Rechtsgrundlage für den Schulbetrieb",
-      tip: "💡 <b>Prüf-Anleitung:</b> Handelt es sich um ein von der Schule verordnetes Pflicht-Tool? Dann greift das öffentliche Interesse (Art. 6.1.e). Wenn sich Schüler privat registrieren müssen, ist Vorsicht geboten.",
+      tip: "💡 <b>Prüf-Anleitung:</b> Handelt es sich um ein von der Schule verordnetes Pflicht-Tool? Dann gilt das öffentliche Interesse (<i>Public Interest</i>) statt einer freiwilligen Einwilligung (<i>Consent</i>).",
       options: [
-        { text: "Nutzung basiert auf Aufgabe im öffentlichen Interesse (compito di interesse pubblico, Art. 6.1.e DSGVO / Art. 2-ter)", val: "ok" },
-        { text: "Fälschlicherweise pauschale Eltern-Einwilligung für Pflichtaufgaben verlangt", val: "warn" }
+        { text: "Nutzung basiert auf Aufgabe im öffentlichen Interesse (compito di interesse pubblico, Art. 6.1.e)", val: "ok" },
+        { text: "Fälschlicherweise pauschale Eltern-Einwilligung für Pflichtaufgaben verlangt", val: "warn" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "6. Löschkonzept vs. Archivordnung (Piano di conservazione e scarto)",
-      tip: "💡 <b>Prüf-Anleitung:</b> Kann man erstellte Schülerdaten und Konten nach Schuljahresende oder bei Abgang wieder vollständig löschen?",
+      tip: "💡 <b>Prüf-Anleitung:</b> Suche in der Privacy Policy nach dem Abschnitt <i>Data retention</i> (Datenspeicherung / Aufbewahrungsfristen), um zu sehen, ob Daten gelöscht werden können.",
       options: [
         { text: "Löschfristen definiert & mit dem Schularchivplan (Piano di conservazione) abgestimmt", val: "ok" },
-        { text: "Unbefristete Speicherung oder Konflikt mit öffentlichen Aufbewahrungsfristen", val: "fail" }
+        { text: "Unbefristete Speicherung oder Konflikt mit öffentlichen Aufbewahrungsfristen", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "7. Verbot von Profiling & Kommerz (Garante Privacy - „La scuola a prova di privacy“)",
-      tip: "💡 <b>Prüf-Anleitung:</b> Überprüfe, ob in den AGB steht, dass Daten für Werbung genutzt werden oder ob KI-Modelle mit den Eingaben der Schüler trainiert werden.",
+      tip: "💡 <b>Prüf-Anleitung:</b> Prüfe in den Terms of Service, ob Klauseln zu <i>Advertising</i> (Werbung), <i>Behavioral tracking</i> oder <i>AI model training using your data</i> enthalten sind.",
       options: [
         { text: "Kein Werbetracking, kein Profiling Minderjähriger, keine Datenweitergabe an Dritte", val: "ok" },
-        { text: "Kommerzielle Datenverwertung, KI-Training mit Schülerdaten oder Tracking aktiv", val: "fail" }
+        { text: "Kommerzielle Datenverwertung, KI-Training mit Schülerdaten oder Tracking aktiv", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "8. DPO-Abstimmung & Eintrag im Verzeichnis (Registro dei trattamenti)",
-      tip: "💡 <b>Prüf-Anleitung:</b> Das Tool muss intern beim Datenschutzbeauftragten (DPO) der Schule gemeldet und in der internen Schulliste geführt werden.",
+      tip: "💡 <b>Prüf-Anleitung:</b> Dies ist ein interner Schritt für die Schule: Das Tool muss dem Datenschutzbeauftragten (<b>DPO / RPD</b>) gemeldet und im Verzeichnis erfasst werden.",
       options: [
         { text: "Mit Datenschutzbeauftragtem (DPO/RPD) abgestimmt & im Verzeichnis der Schule (Art. 30 DSGVO) erfasst", val: "ok" },
-        { text: "Nicht im Registro dei trattamenti erfasst", val: "warn" }
+        { text: "Nicht im Registro dei trattamenti erfasst", val: "warn" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "9. Privacy by Design & AgID-Softwarerichtlinien",
-      tip: "💡 <b>Prüf-Anleitung:</b> Sind Tracking-Cookies und Werbe-Tracker standardmäßig deaktiviert (Privacy by default)?",
+      tip: "💡 <b>Prüf-Anleitung:</b> Achte darauf, ob das Tool datenschutzfreundliche Standardeinstellungen (<i>Privacy by default</i>) nutzt oder ob Tracking beim Start ungefragt aktiv ist.",
       options: [
         { text: "Datenschutzfreundliche Voreinstellungen aktiv (Art. 25 DSGVO) gemäß Beschaffungsrichtlinien", val: "ok" },
-        { text: "Datenschutzunfreundliche Standardeinstellungen", val: "fail" }
+        { text: "Datenschutzunfreundliche Standardeinstellungen", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     },
     {
       q: "10. Transparente Information (Informativa ex Art. 13/14)",
-      tip: "💡 <b>Prüf-Anleitung:</b> Gibt es eine leicht verständliche Datenschutz-Information für Eltern und Erziehungsberechtigte?",
+      tip: "💡 <b>Prüf-Anleitung:</b> Prüfe, ob eine transparente Datenschutzerklärung (<b>Privacy Notice</b> / <b>Informativa</b>) für Eltern bereitsteht.",
       options: [
         { text: "Information für Eltern/Schüler vorab veröffentlicht (z. B. via Digitales Register / Schulhomepage)", val: "ok" },
-        { text: "Keine transparente Informativa bereitgestellt", val: "fail" }
+        { text: "Keine transparente Informativa bereitgestellt", val: "fail" },
+        { text: "⚪ Nicht überprüfbar / Keine Angabe (unklar)", val: "warn" }
       ]
     }
   ];
@@ -557,7 +567,6 @@
     const q = manualQuestions[manualStep];
     document.getElementById("manual-question").innerText = q.q;
     
-    // Prüf-Tipp anzeigen, falls vorhanden
     const tipBox = document.getElementById("manual-tip");
     if (q.tip) {
       tipBox.innerHTML = q.tip;
@@ -590,16 +599,16 @@
 
     let status = "GREEN";
     let title = `${currentEvalToolName}: Südtirol-Konform`;
-    let summary = "Das Tool erfüllt alle 10 Pflichtkriterien der Südtiroler DSGVO-Checkliste für den Schulbetrieb (AgID/ACN & Garante Privacy).";
+    let summary = "Das Tool erfüllt alle 10 Pflichtkriterien der Südtiroler DSGVO-Checkliste für den Schulbetrieb.";
 
     if (fails > 0) {
       status = "RED";
       title = `${currentEvalToolName}: Nicht zulässig`;
-      summary = `Das Tool verletzt ${fails} gesetzliche Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben für die öffentliche Schule.`;
+      summary = `Das Tool verletzt ${fails} gesetzliche Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben.`;
     } else if (warns > 0) {
       status = "YELLOW";
-      title = `${currentEvalToolName}: Bedingt nutzbar`;
-      summary = "Technisch zulässig. Es fehlen jedoch organisatorische Schritte an der Schule (z. B. Eintragung im Registro dei trattamenti oder Klärung der Rechtsgrundlage).";
+      title = `${currentEvalToolName}: Bedingt nutzbar (Unklare Punkte)`;
+      summary = `Ein oder mehrere Kriterien wurden mit "Nicht überprüfbar" oder "Warnung" bewertet. Eine genaue Prüfung durch die Schulleitung/den DPO wird empfohlen.`;
     }
 
     const toolKey = currentEvalToolName.toLowerCase().replace(/[^a-z0-9]/g, '');
