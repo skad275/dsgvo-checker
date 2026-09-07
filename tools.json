@@ -1,0 +1,79 @@
+{
+  "canva": {
+    "keywords": ["canva", "canva.com"],
+    "status": "GREEN",
+    "title": "Canva for Education",
+    "summary": "DSGVO: Sehr gut (Kostenloses Bildungspaket mit integriertem AVV). OER: Eingeschränkt – Grafiken und Arbeitsblätter können als PDF/PNG exportiert werden, eine direkte Weiterbearbeitung/Remix setzt jedoch einen Canva-Account voraus.",
+    "oer_status": "🟡 OER: Bedingt geeignet (Proprietäres Format)",
+    "evidence": [
+      "AVV im Schul-Account integriert.",
+      "Erstelltes Material darf frei genutzt werden; für Remixe benötigen Dritte ebenfalls Canva."
+    ]
+  },
+  "padlet": {
+    "keywords": ["padlet", "padlet.com"],
+    "status": "YELLOW",
+    "title": "Padlet",
+    "summary": "DSGVO: Bedingt nutzbar – Die anonyme Nutzung für Schüler*innen über Link/PIN ohne Registrierung wird dringend empfohlen. OER: Gut – Pinnwände lassen sich als PDF oder CSV exportieren und unter freien Lizenzen teilen.",
+    "oer_status": "🟢 OER: Gut geeignet (Guter Export)",
+    "evidence": [
+      "Anonyme Teilnahme für Schüler*innen ohne Login möglich.",
+      "Exporte als PDF/Bild zur Weitergabe als Lehrmaterial vorhanden."
+    ]
+  },
+  "taskcards": {
+    "keywords": ["taskcards", "taskcards.de"],
+    "status": "GREEN",
+    "title": "TaskCards",
+    "summary": "DSGVO: Hervorragend – Serverstandort und Unternehmen in Deutschland mit AVV. OER: Vorbildlich – Pinnwände können im offenen JSON-Format exportiert und von anderen Lehrkräften vollständig importiert und angepasst werden.",
+    "oer_status": "🟢 OER: Vorbildlich (Offene Schnittstellen)",
+    "evidence": [
+      "Serverstandort Deutschland mit DSGVO-konformem AVV.",
+      "JSON-Export erlaubt echtes Remixen und Wiederverwenden von Pinnwänden."
+    ]
+  },
+  "geogebra": {
+    "keywords": ["geogebra", "geogebra.org"],
+    "status": "GREEN",
+    "title": "GeoGebra",
+    "summary": "DSGVO: Unbedenklich – Nutzung ohne Login im Unterricht möglich. OER: Ausgezeichnet – Die dynamischen Mathematik-Materialien stehen standardmäßig unter freien Creative-Commons-Lizenzen zur Verfügung.",
+    "oer_status": "🟢 OER: Voll OER-konform (Creative Commons)",
+    "evidence": [
+      "Nutzung von Rechnern und Applets ohne Registrierung möglich.",
+      "Integrierte Creative-Commons-Lizenzierung (CC BY-NC-SA) auf der Plattform."
+    ]
+  },
+  "kahoot": {
+    "keywords": ["kahoot", "kahoot.com"],
+    "status": "YELLOW",
+    "title": "Kahoot!",
+    "summary": "DSGVO: Die anonyme Teilnahme am Spiel via PIN ist unbedenklich. Schülerkonto-Erstellung vermeiden. OER: Eingeschränkt – Quizze verbleiben auf der Plattform und erfordern einen Account zum Bearbeiten.",
+    "oer_status": "🟡 OER: Eingeschränkt (Plattformbindung)",
+    "evidence": [
+      "Spielteilnahme ohne Registrierung (anonym via Game-PIN) datenschutzkonform.",
+      "Kein echter Datei-Export zur freien Bearbeitung im Unterricht."
+    ]
+  },
+  "fiete_ai": {
+    "keywords": ["fiete", "fiete.ai"],
+    "status": "GREEN",
+    "title": "Fiete.ai (KI-Feedback)",
+    "summary": "DSGVO: Sehr gut – Speziell für Schule entwickelte KI-Plattform mit Servern in der EU und AVV. OER: Gut – Aufgabenstellungen lassen sich leicht teilen.",
+    "oer_status": "🟢 OER: Gut geeignet",
+    "evidence": [
+      "DSGVO-konforme Auftragsverarbeitung (AVV) vorhanden.",
+      "Keine Datennutzung zum Training öffentlicher KI-Modelle."
+    ]
+  },
+  "chatgpt_free": {
+    "keywords": ["chatgpt", "openai", "chatgpt.com"],
+    "status": "RED",
+    "title": "ChatGPT (Kostenloses Privatkonto)",
+    "summary": "DSGVO: Nicht zulässig für Schülerkonten (Mindestalter, Datenverarbeitung in den USA, Modelltraining mit Eingaben). OER: Unklar – KI-Outputs sind urheberrechtlich meist gemeinfrei, Rechtefragen jedoch nicht vollends geklärt.",
+    "oer_status": "⚪ OER: Gemeinfrei / Unklar",
+    "evidence": [
+      "Modelltraining mit Nutzereingaben im kostenlosen Standardkonto aktiv.",
+      "Nutzungsbedingungen schließen eigenständige Nutzung unter 13 Jahren aus."
+    ]
+  }
+}
