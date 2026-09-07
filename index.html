@@ -82,7 +82,7 @@
       100% { transform: translateY(-22px) rotate(10deg); }
     }
 
-    /* Schwebende Hauptkarte */
+    /* Hauptkarte */
     .card {
       position: relative;
       z-index: 1;
@@ -177,7 +177,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
@@ -189,7 +189,7 @@
       outline: none;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       border-color: var(--purple-accent);
     }
 
@@ -207,6 +207,23 @@
     button.btn-primary:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4);
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, var(--purple-accent), var(--pink-accent));
+      color: white;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 12px;
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+    }
+
+    .btn-submit:hover {
+      opacity: 0.95;
     }
 
     .btn-option {
@@ -291,10 +308,19 @@
     .btn-print { background-color: #475569; color: white; margin-top: 20px; border-radius: 10px; border: none; padding: 12px; font-weight: 600; cursor: pointer; }
     .btn-print:hover { background-color: #334155; }
 
+    .submission-card {
+      margin-top: 20px;
+      padding: 16px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      text-align: left;
+    }
+
     @media print {
       body { background: #fff; padding: 0; }
       .card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      .search-box, .tab-nav, select, button, .subtitle, label, .progress-bg, .status-msg, .header-icon, .floating-bg-icons {
+      .search-box, .tab-nav, select, button, .subtitle, label, .progress-bg, .status-msg, .header-icon, .floating-bg-icons, .submission-card {
         display: none !important;
       }
       .result-box { border-width: 2px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -343,9 +369,21 @@
   </div>
 
   <div id="mode-manual" style="display: none;">
-    <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
-    <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; color: #0f172a;" id="manual-question">Lade Frage...</div>
-    <div id="manual-options"></div>
+    <div id="manual-step-0">
+      <label style="font-weight: 700; display: block; margin-bottom: 6px;">Name des Tools:</label>
+      <input type="text" id="new-tool-name" placeholder="z. B. Anton App">
+      
+      <label style="font-weight: 700; display: block; margin-top: 12px; margin-bottom: 6px;">Webadresse / Domain (optional):</label>
+      <input type="text" id="new-tool-url" placeholder="z. B. anton.app">
+      
+      <button class="btn-primary" onclick="startQuestionnaire()" style="margin-top: 16px; padding: 12px;">Weiter zum 10-Punkte-Fragebogen ➔</button>
+    </div>
+
+    <div id="manual-questions-container" style="display: none;">
+      <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
+      <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; color: #0f172a;" id="manual-question">Lade Frage...</div>
+      <div id="manual-options"></div>
+    </div>
   </div>
 
   <div id="result" style="display: none;" class="result-box">
@@ -362,13 +400,35 @@
       <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 8px; line-height: 1.5;"></ul>
     </div>
 
+    <!-- Einreichungs-Bereich -->
+    <div id="submission-section" class="submission-card" style="display: none;">
+      <h4 style="margin: 0 0 8px 0; color: #0f172a;">📩 Tool zur Aufnahme vorschlagen</h4>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 12px 0;">
+        Hilf mit, die Datenbank zu erweitern. Reiche diese Bewertung ein, damit sie zentral überprüft und für alle Schulen freigeschaltet wird.
+      </p>
+      
+      <form id="suggest-form" onsubmit="submitToolSuggestion(event)">
+        <input type="hidden" id="form-payload" name="json_payload">
+        <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Kurze Anmerkung (optional):</label>
+        <input type="text" id="form-note" name="user_note" placeholder="z. B. Getestet am Sprengel Bozen..." style="margin-bottom: 8px;">
+        <button type="submit" class="btn-submit">🚀 Bewertung anonym einreichen</button>
+      </form>
+      <div id="form-status" style="margin-top: 8px; font-size: 0.85rem; font-weight: 600; display: none;"></div>
+    </div>
+
     <button onclick="window.print()" class="btn-print" style="width: 100%;">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
     <button onclick="resetAll()" style="background: transparent; border: 1px solid #cbd5e1; color: var(--text-muted); margin-top: 10px; width: 100%; padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer;">🔄 Neue Prüfung starten</button>
   </div>
 </div>
 
 <script>
+  // 👉 DEIN ANONYMER FORMSPREE ENDPUNKT
+  const FORMSPREE_ENDPOINT = "https://formspree.io/f/mqpkyabj";
+
   let presetsData = {};
+  let currentEvalToolName = "";
+  let currentEvalToolUrl = "";
+  let generatedJsonCode = "";
 
   async function loadToolsDatabase() {
     try {
@@ -399,9 +459,11 @@
 
     if (!rawInput) return alert("Bitte gib einen Link oder Namen ein.");
 
+    const cleanSearch = rawInput.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
     let foundKey = null;
     for (const [key, tool] of Object.entries(presetsData)) {
-      if (tool.keywords.some(kw => rawInput.includes(kw))) {
+      if (tool.keywords.some(kw => cleanSearch.includes(kw))) {
         foundKey = key;
         break;
       }
@@ -412,11 +474,12 @@
       statusMsg.className = "status-msg found";
       statusMsg.innerHTML = `✅ <b>Tool in Datenbank gefunden!</b>`;
       statusMsg.style.display = "block";
-      showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
+      showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank", false);
     } else {
       statusMsg.className = "status-msg not-found";
-      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Nutze die Selbstprüfung (10 Kriterien Südtirol).`;
+      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Starte die Selbstprüfung zur Erfassung.`;
       statusMsg.style.display = "block";
+      document.getElementById("new-tool-name").value = rawInput;
       switchMode('manual');
     }
   }
@@ -429,17 +492,39 @@
     document.getElementById("tab-manual").className = `tab-btn ${mode === 'manual' ? 'active' : ''}`;
     
     document.getElementById("result").style.display = "none";
-    if (mode === 'manual') renderManualStep();
+  }
+
+  function startQuestionnaire() {
+    const name = document.getElementById("new-tool-name").value.trim();
+    if (!name) return alert("Bitte gib den Namen des Tools ein.");
+    
+    const cleanName = name.toLowerCase();
+    for (const [key, tool] of Object.entries(presetsData)) {
+      if (tool.keywords.some(kw => cleanName.includes(kw))) {
+        alert(`Das Tool "${tool.title}" existiert bereits in der Datenbank!`);
+        showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank", false);
+        return;
+      }
+    }
+
+    currentEvalToolName = name;
+    currentEvalToolUrl = document.getElementById("new-tool-url").value.trim();
+    
+    document.getElementById("manual-step-0").style.display = "none";
+    document.getElementById("manual-questions-container").style.display = "block";
+    
+    manualStep = 0;
+    manualAnswers = [];
+    renderManualStep();
   }
 
   function loadPreset() {
     const val = document.getElementById("preset-select").value;
     if (!val) return;
     const tool = presetsData[val];
-    showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
+    showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank", false);
   }
 
-  // 10 Südtiroler Prüfkriterien
   const manualQuestions = [
     {
       q: "1. Serverstandort & ACN-Cloud-Qualifizierung (Pubblica Amministrazione)",
@@ -542,23 +627,43 @@
     const warns = manualAnswers.filter(a => a === "warn").length;
 
     let status = "GREEN";
-    let title = "Südtirol-Konform (Freigabe möglich)";
+    let title = `${currentEvalToolName}: Südtirol-Konform`;
     let summary = "Das Tool erfüllt alle 10 Pflichtkriterien der Südtiroler DSGVO-Checkliste für den Schulbetrieb (AgID/ACN & Garante Privacy).";
 
     if (fails > 0) {
       status = "RED";
-      title = "Nicht zulässig für Südtiroler Schulen";
+      title = `${currentEvalToolName}: Nicht zulässig`;
       summary = `Das Tool verletzt ${fails} gesetzliche Pflichtkriterium/Pflichtkriterien der ACN/AgID- und DSGVO-Vorgaben für die öffentliche Schule.`;
     } else if (warns > 0) {
       status = "YELLOW";
-      title = "Bedingt nutzbar (Organisatorische Nachbesserung erforderlich)";
+      title = `${currentEvalToolName}: Bedingt nutzbar`;
       summary = "Technisch zulässig. Es fehlen jedoch organisatorische Schritte an der Schule (z. B. Eintragung im Registro dei trattamenti oder Klärung der Rechtsgrundlage).";
     }
 
-    showResult(status, title, summary, [], "⚪ Selbstprüfung Südtirol", "10-Punkte-Checkliste Südtirol");
+    const toolKey = currentEvalToolName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const kw1 = currentEvalToolName.toLowerCase();
+    const kw2 = currentEvalToolUrl.toLowerCase().replace(/^https?:\/\//, '');
+    const keywordsArr = [kw1];
+    if (kw2 && kw2 !== kw1) keywordsArr.push(kw2);
+
+    const jsonObj = {};
+    jsonObj[toolKey] = {
+      keywords: keywordsArr,
+      status: status,
+      title: currentEvalToolName,
+      summary: summary,
+      oer_status: "⚪ OER: Nicht bewertet",
+      evidence: [
+        "Selbstprüfung durch Lehrkraft nach Südtiroler 10-Punkte-Checkliste."
+      ]
+    };
+
+    generatedJsonCode = JSON.stringify(jsonObj, null, 2);
+
+    showResult(status, title, summary, [], "⚪ Selbstprüfung Südtirol", "10-Punkte-Checkliste Südtirol", true);
   }
 
-  function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo) {
+  function showResult(status, title, summary, evidence, oerBadgeText, sourceInfo, allowSubmission = false) {
     document.getElementById("mode-preset").style.display = "none";
     document.getElementById("mode-manual").style.display = "none";
     
@@ -589,6 +694,46 @@
     } else {
       evContainer.style.display = "none";
     }
+
+    const subSection = document.getElementById("submission-section");
+    if (allowSubmission) {
+      subSection.style.display = "block";
+      document.getElementById("form-payload").value = generatedJsonCode;
+      document.getElementById("form-status").style.display = "none";
+    } else {
+      subSection.style.display = "none";
+    }
+  }
+
+  async function submitToolSuggestion(event) {
+    event.preventDefault();
+    const statusDiv = document.getElementById("form-status");
+    statusDiv.style.display = "block";
+    statusDiv.style.color = "#0284c7";
+    statusDiv.innerText = "⏳ Übermittle Vorschlag...";
+
+    try {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          tool_name: currentEvalToolName,
+          json_snippet: document.getElementById("form-payload").value,
+          user_note: document.getElementById("form-note").value
+        })
+      });
+
+      if (response.ok) {
+        statusDiv.style.color = "#166534";
+        statusDiv.innerText = "✅ Vorschlag erfolgreich eingereicht! Vielen Dank.";
+        document.getElementById("suggest-form").reset();
+      } else {
+        throw new Error("Übermittlung fehlgeschlagen.");
+      }
+    } catch (err) {
+      statusDiv.style.color = "#991b1b";
+      statusDiv.innerText = "❌ Fehler bei der Übermittlung. Bitte versuche es später erneut.";
+    }
   }
 
   function resetAll() {
@@ -597,6 +742,10 @@
     document.getElementById("tool-search-input").value = "";
     document.getElementById("status-msg").style.display = "none";
     document.getElementById("preset-select").value = "";
+    document.getElementById("new-tool-name").value = "";
+    document.getElementById("new-tool-url").value = "";
+    document.getElementById("manual-step-0").style.display = "block";
+    document.getElementById("manual-questions-container").style.display = "none";
     switchMode('preset');
   }
 </script>
