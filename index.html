@@ -6,202 +6,288 @@
   <title>DSGVO & OER Tool-Checker für Schulen</title>
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --border: #cbd5e1;
-      --green: #16a34a;
-      --yellow: #ca8a04;
-      --red: #dc2626;
-      --purple: #7c3aed;
+      --bg-dark: #090d16;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      
+      /* Akzentfarben aus dem Screenshot */
+      --pink-accent: #ec4899;
+      --pink-light: #fce7f3;
+      --cyan-accent: #06b6d4;
+      --cyan-light: #e0f2fe;
+      --purple-accent: #a855f7;
+      --purple-light: #f3e8ff;
+      --blue-accent: #3b82f6;
+
+      /* Status-Ampeln in sanften Dashboard-Tönen */
+      --green-bg: #ecfdf5;
+      --green-border: #10b981;
+      --green-text: #065f46;
+
+      --yellow-bg: #fffbebf1;
+      --yellow-border: #f59e0b;
+      --yellow-text: #92400e;
+
+      --red-bg: #fef2f2;
+      --red-border: #ef4444;
+      --red-text: #991b1b;
     }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-dark);
+      /* Dekorative Neon-Gradients im Hintergrund */
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 60%);
+      color: var(--text-main);
       display: flex;
       justify-content: center;
-      padding: 20px;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px 16px;
       margin: 0;
+      box-sizing: border-box;
     }
 
+    /* Schwebende Hauptkarte */
     .card {
-      background-color: var(--card);
+      background-color: var(--card-bg);
       max-width: 680px;
       width: 100%;
-      padding: 28px;
-      border-radius: 12px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      border: 1px solid #e2e8f0;
+      padding: 36px;
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
+    .header-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .header-icon {
+      background: linear-gradient(135deg, var(--pink-accent), var(--purple-accent));
+      color: white;
+      font-size: 1.8rem;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      box-shadow: 0 8px 16px rgba(236, 72, 153, 0.3);
+      flex-shrink: 0;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 4px 0 0 0;
+    }
+
+    /* Suche & Eingabe im Cyan-Stil */
     .search-box {
-      background: #eff6ff;
-      border: 2px solid #bfdbfe;
-      padding: 16px;
-      border-radius: 10px;
-      margin-bottom: 20px;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      padding: 18px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      transition: border-color 0.2s ease;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--cyan-accent);
     }
 
     .search-input-group {
       display: flex;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 10px;
+      margin-top: 10px;
     }
 
-    .status-msg {
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      display: none;
-    }
-    .status-msg.found { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-    .status-msg.not-found { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-
+    /* Abgerundete Tabs im Pill-Design */
     .tab-nav {
       display: flex;
-      gap: 6px;
-      margin-bottom: 20px;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 8px;
+      gap: 10px;
+      margin-bottom: 24px;
+      background: #f1f5f9;
+      padding: 6px;
+      border-radius: 12px;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 10px 6px;
-      background: #f1f5f9;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-weight: 600;
+      padding: 10px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
       font-size: 0.85rem;
       cursor: pointer;
-      color: #475569;
-      margin: 0;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
     }
 
     .tab-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
+      background: var(--card-bg);
+      color: var(--purple-accent);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    input, select, button {
+    input, select {
       width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      box-sizing: border-box;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
       font-family: inherit;
       font-size: 0.95rem;
+      box-sizing: border-box;
+      outline: none;
     }
 
-    button {
-      background-color: var(--primary);
+    input:focus, select:focus {
+      border-color: var(--purple-accent);
+    }
+
+    button.btn-primary {
+      background: linear-gradient(135deg, var(--cyan-accent), var(--blue-accent));
       color: white;
-      font-weight: 600;
+      font-weight: 700;
       border: none;
+      border-radius: 10px;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
     }
 
-    button:hover { background-color: var(--primary-hover); }
+    button.btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4);
+    }
 
     .btn-option {
       background: #ffffff;
-      border: 2px solid var(--border);
-      padding: 12px 14px;
-      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      padding: 14px 16px;
+      border-radius: 12px;
       text-align: left;
       cursor: pointer;
-      color: var(--text);
-      font-weight: 500;
-      margin-top: 8px;
+      color: var(--text-main);
+      font-weight: 600;
+      margin-top: 10px;
+      transition: all 0.2s ease;
     }
 
     .btn-option:hover {
-      border-color: var(--primary);
-      background-color: #eff6ff;
+      border-color: var(--purple-accent);
+      background-color: var(--purple-light);
+      color: var(--purple-accent);
     }
 
-    .btn-print { background-color: #475569; margin-top: 16px; }
-    .btn-print:hover { background-color: #334155; }
+    /* Status-Meldungen */
+    .status-msg {
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .status-msg.found { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+    .status-msg.not-found { background: var(--yellow-bg); color: var(--yellow-text); border: 1px solid var(--yellow-border); }
 
+    /* Ergebnis-Karten im Ampel-Stil */
     .result-box {
-      padding: 20px;
-      border-radius: 8px;
-      margin-top: 20px;
+      padding: 24px;
+      border-radius: 16px;
+      margin-top: 24px;
       text-align: center;
     }
 
-    .GREEN { background: #f0fdf4; color: #14532d; border: 2px solid var(--green); }
-    .YELLOW { background: #fefce8; color: #713f12; border: 2px solid var(--yellow); }
-    .RED { background: #fef2f2; color: #7f1d1d; border: 2px solid var(--red); }
+    .GREEN { background: var(--green-bg); color: var(--green-text); border: 2px solid var(--green-border); }
+    .YELLOW { background: var(--yellow-bg); color: var(--yellow-text); border: 2px solid var(--yellow-border); }
+    .RED { background: var(--red-bg); color: var(--red-text); border: 2px solid var(--red-border); }
 
+    /* Badges */
     .badge {
       display: inline-block;
-      font-weight: bold;
-      padding: 4px 12px;
+      font-weight: 800;
+      padding: 6px 16px;
       border-radius: 20px;
-      margin-bottom: 6px;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     .oer-badge {
       display: inline-block;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.85rem;
-      background: #f3e8ff;
-      color: var(--purple);
+      background: var(--purple-light);
+      color: var(--purple-accent);
       border: 1px solid #d8b4fe;
-      padding: 4px 12px;
-      border-radius: 12px;
-      margin-top: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-top: 8px;
     }
 
     .progress-bg {
-      height: 6px;
+      height: 8px;
       background: #e2e8f0;
-      border-radius: 3px;
-      margin-bottom: 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
       overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      background: var(--primary);
+      background: linear-gradient(90deg, var(--pink-accent), var(--purple-accent));
       width: 16%;
       transition: width 0.3s ease;
     }
 
+    .btn-print { background-color: #475569; color: white; margin-top: 20px; border-radius: 10px; border: none; padding: 12px; font-weight: 600; cursor: pointer; }
+    .btn-print:hover { background-color: #334155; }
+
     @media print {
       body { background: #fff; padding: 0; }
       .card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      .search-box, .tab-nav, select, button, .subtitle, details, label, .progress-bg, .status-msg {
+      .search-box, .tab-nav, select, button, .subtitle, label, .progress-bg, .status-msg, .header-icon {
         display: none !important;
       }
-      .result-box {
-        border-width: 2px !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
+      .result-box { border-width: 2px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>🛡️ DSGVO & OER Tool-Checker für Schulen</h2>
-  <p class="subtitle" style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">Prüfe Anwendungen auf Datenschutz (DSGVO) und Open Educational Resources (OER).</p>
+  <div class="header-container">
+    <div class="header-icon">📚</div>
+    <div>
+      <h2>DSGVO & OER Checker</h2>
+      <p class="subtitle">Schulwerkzeuge auf Datenschutz und offene Lizenzen prüfen</p>
+    </div>
+  </div>
 
   <div class="search-box">
-    <label style="font-weight: 700; color: #1e3a8a;">🔗 Tool oder Link überprüfen:</label>
+    <label style="font-weight: 700; color: #1e293b; font-size: 0.9rem;">🔍 Tool oder Webadresse suchen:</label>
     <div class="search-input-group">
-      <input type="text" id="tool-search-input" placeholder="z. B. https://padlet.com, Canva oder TaskCards..." style="margin-top:0;">
-      <button onclick="checkToolUrl()" style="width: 140px; margin-top:0;">Prüfen</button>
+      <input type="text" id="tool-search-input" placeholder="z. B. padlet.com, Canva, TaskCards..." style="margin-top:0;">
+      <button class="btn-primary" onclick="checkToolUrl()" style="width: 130px; margin-top:0;">Prüfen</button>
     </div>
   </div>
 
@@ -209,11 +295,11 @@
 
   <div class="tab-nav" id="tab-nav">
     <button class="tab-btn active" id="tab-preset" onclick="switchMode('preset')">⚡ Vorgeprüfte Tools</button>
-    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Fragebogen</button>
+    <button class="tab-btn" id="tab-manual" onclick="switchMode('manual')">📋 Selbstprüfung</button>
   </div>
 
   <div id="mode-preset">
-    <label style="font-weight: 600; display: block; margin-bottom: 6px;">Wähle ein bekanntes Tool aus der Liste:</label>
+    <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted);">Wähle eine geprüfte Anwendung aus der Datenbank:</label>
     <select id="preset-select" onchange="loadPreset()">
       <option value="">Lade Datenbank...</option>
     </select>
@@ -221,7 +307,7 @@
 
   <div id="mode-manual" style="display: none;">
     <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
-    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 12px;" id="manual-question">Lade Frage...</div>
+    <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; color: #0f172a;" id="manual-question">Lade Frage...</div>
     <div id="manual-options"></div>
   </div>
 
@@ -229,25 +315,24 @@
     <div id="result-badge" class="badge"></div><br>
     <div id="result-oer-badge" class="oer-badge"></div>
     
-    <h3 id="result-title" style="margin-top: 10px;"></h3>
-    <div id="result-date" style="font-size: 0.8rem; color: #64748b; margin-bottom: 12px;"></div>
+    <h3 id="result-title" style="margin-top: 14px; font-size: 1.25rem;"></h3>
+    <div id="result-date" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;"></div>
     
-    <p id="result-summary" style="text-align: left; margin-top: 12px; line-height: 1.5;"></p>
+    <p id="result-summary" style="text-align: left; margin-top: 14px; line-height: 1.6; font-size: 0.95rem;"></p>
     
-    <div id="evidence-container" style="text-align: left; margin-top: 12px; display: none;">
-      <b>Gefundene Nachweise & Richtlinien:</b>
-      <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 6px;"></ul>
+    <div id="evidence-container" style="text-align: left; margin-top: 16px; display: none;">
+      <b style="font-size: 0.9rem;">Gefundene Nachweise & Richtlinien:</b>
+      <ul id="result-evidence" style="font-size: 0.85rem; padding-left: 20px; margin-top: 8px; line-height: 1.5;"></ul>
     </div>
 
-    <button onclick="window.print()" class="btn-print">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
-    <button onclick="resetAll()" style="background-color: #94a3b8; margin-top: 8px;">🔄 Neue Prüfung starten</button>
+    <button onclick="window.print()" class="btn-print" style="width: 100%;">🖨️ Prüfprotokoll drucken / als PDF speichern</button>
+    <button onclick="resetAll()" style="background: transparent; border: 1px solid #cbd5e1; color: var(--text-muted); margin-top: 10px; width: 100%; padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer;">🔄 Neue Prüfung starten</button>
   </div>
 </div>
 
 <script>
   let presetsData = {};
 
-  // Lädt die vorgeprüften Tools aus der externen tools.json
   async function loadToolsDatabase() {
     try {
       const response = await fetch('tools.json');
@@ -293,9 +378,9 @@
       showResult(tool.status, tool.title, tool.summary, tool.evidence, tool.oer_status, "Vorgeprüfte Datenbank");
     } else {
       statusMsg.className = "status-msg not-found";
-      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Nutze den Fragebogen zur manuellen Selbstprüfung.`;
+      statusMsg.innerHTML = `❓ <b>Unbekanntes Tool.</b> Nutze die Selbstprüfung zur Bewertung.`;
       statusMsg.style.display = "block";
-      switchMode('manual'); // Schaltet nun sauber auf den Fragebogen um!
+      switchMode('manual');
     }
   }
 
@@ -425,7 +510,7 @@
     document.getElementById("result-summary").innerText = summary;
 
     const now = new Date();
-    const sourceStr = sourceInfo ? ` | Methode: ${sourceInfo}` : '';
+    const sourceStr = sourceInfo ? ` | Quelle: ${sourceInfo}` : '';
     document.getElementById("result-date").innerText = `Prüfdatum: ${now.toLocaleDateString("de-DE")} um ${now.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })} Uhr${sourceStr}`;
 
     const evContainer = document.getElementById("evidence-container");
